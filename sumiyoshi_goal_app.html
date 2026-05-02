@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>すみよし｜目標設定AIサポート</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #F7F6F2;
+  --surface: #FFFFFF;
+  --border: #E8E6DF;
+  --border-mid: #D4D1C7;
+  --text-primary: #1A1917;
+  --text-secondary: #6B6861;
+  --text-tertiary: #A8A49C;
+  --accent: #2C5F3F;
+  --accent-light: #EAF2ED;
+  --accent-mid: #4A8C64;
+  --warn: #8B5E1A;
+  --warn-light: #FBF3E6;
+  --danger: #8B1A1A;
+  --danger-light: #FBE6E6;
+  --info: #1A3F6B;
+  --info-light: #E6EEF8;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Noto Sans JP', sans-serif;
+  background: var(--bg);
+  color: var(--text-primary);
+  min-height: 100vh;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.page-header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 20px 24px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-inner {
+  max-width: 720px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-mark {
+  width: 32px;
+  height: 32px;
+  background: var(--accent);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo-mark svg { width: 16px; height: 16px; fill: white; }
+
+.logo-text {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+.logo-sub {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-weight: 300;
+}
+
+.step-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.step-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--border-mid);
+  transition: all 0.3s;
+}
+.step-dot.active { background: var(--accent); transform: scale(1.3); }
+.step-dot.done { background: var(--accent-mid); }
+
+.container {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 32px 24px 80px;
+}
+
+.section-title {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  margin-bottom: 16px;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow);
+}
+
+.card-title {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-title-num {
+  width: 22px;
+  height: 22px;
+  background: var(--accent);
+  color: white;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'DM Sans', sans-serif;
+  flex-shrink: 0;
+}
+
+label {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+
+input[type="text"], select, textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border-mid);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-family: 'Noto Sans JP', sans-serif;
+  color: var(--text-primary);
+  background: var(--surface);
+  margin-bottom: 16px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  appearance: none;
+}
+
+input[type="text"]:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(44, 95, 63, 0.1);
+}
+
+textarea { resize: vertical; min-height: 72px; line-height: 1.6; }
+
+select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23A8A49C' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
+  cursor: pointer;
+}
+
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+.type-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.type-btn {
+  padding: 8px 4px;
+  border: 1px solid var(--border-mid);
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  font-family: 'Noto Sans JP', sans-serif;
+  text-align: center;
+  cursor: pointer;
+  background: var(--bg);
+  color: var(--text-secondary);
+  line-height: 1.4;
+  transition: all 0.15s;
+  user-select: none;
+}
+
+.type-btn:hover { border-color: var(--accent-mid); color: var(--accent); }
+.type-btn.sel {
+  background: var(--accent-light);
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.kr-list { margin-bottom: 8px; }
+.kr-row { display: flex; gap: 8px; align-items: flex-start; margin-bottom: 8px; }
+.kr-num {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  min-width: 28px;
+  padding-top: 11px;
+  font-family: 'DM Sans', sans-serif;
+}
+.kr-row textarea { margin-bottom: 0; min-height: 52px; }
+
+.add-kr-btn {
+  background: none;
+  border: 1px dashed var(--border-mid);
+  border-radius: var(--radius-sm);
+  color: var(--text-tertiary);
+  font-size: 12px;
+  font-family: 'Noto Sans JP', sans-serif;
+  cursor: pointer;
+  padding: 6px 12px;
+  width: 100%;
+  margin-bottom: 16px;
+  transition: all 0.15s;
+}
+.add-kr-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+.btn-primary {
+  width: 100%;
+  padding: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border-mid);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: 'Noto Sans JP', sans-serif;
+  cursor: pointer;
+  color: var(--text-primary);
+  transition: all 0.15s;
+}
+.btn-primary:hover { background: var(--bg); border-color: var(--text-secondary); }
+
+.btn-accent {
+  width: 100%;
+  padding: 13px;
+  background: var(--accent);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: 'Noto Sans JP', sans-serif;
+  cursor: pointer;
+  color: white;
+  transition: all 0.15s;
+  letter-spacing: 0.02em;
+}
+.btn-accent:hover { background: #234D33; }
+.btn-accent:disabled { background: var(--border-mid); cursor: default; }
+
+.btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px; }
+
+.api-note {
+  background: var(--warn-light);
+  border: 1px solid #E8C97A;
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  margin-bottom: 20px;
+}
+.api-note p { font-size: 12px; color: var(--warn); line-height: 1.7; }
+.api-note strong { font-weight: 500; }
+
+.loading-state {
+  text-align: center;
+  padding: 40px 20px;
+}
+.loading-dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+.dot {
+  width: 8px; height: 8px;
+  background: var(--accent);
+  border-radius: 50%;
+  animation: bounce 1.2s ease-in-out infinite;
+}
+.dot:nth-child(2) { animation-delay: 0.2s; }
+.dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes bounce { 0%,80%,100%{transform:scale(0.8);opacity:0.5} 40%{transform:scale(1.2);opacity:1} }
+
+.loading-text { font-size: 13px; color: var(--text-secondary); }
+
+.overall-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 24px;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 12px;
+}
+.badge-pass { background: var(--accent-light); color: var(--accent); }
+.badge-warn { background: var(--warn-light); color: var(--warn); }
+.badge-fail { background: var(--danger-light); color: var(--danger); }
+
+.summary-text {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.8;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.goal-section {
+  padding-top: 16px;
+  margin-top: 4px;
+}
+
+.goal-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+}
+
+.score-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.score-card {
+  background: var(--bg);
+  border-radius: var(--radius-md);
+  padding: 12px;
+}
+
+.score-label { font-size: 11px; color: var(--text-tertiary); margin-bottom: 4px; font-weight: 400; }
+.score-value { font-family: 'DM Sans', sans-serif; font-size: 22px; font-weight: 500; }
+.score-bar { height: 4px; background: var(--border); border-radius: 2px; margin: 6px 0 2px; overflow: hidden; }
+.score-fill { height: 100%; border-radius: 2px; transition: width 0.6s ease; }
+
+.tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.tag {
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-weight: 500;
+}
+.tag-ok { background: var(--accent-light); color: var(--accent); }
+.tag-ng { background: var(--warn-light); color: var(--warn); }
+
+.fb-item {
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  border-left: 3px solid;
+}
+.fb-ok { background: var(--accent-light); border-color: var(--accent-mid); }
+.fb-ng { background: var(--danger-light); border-color: var(--danger); }
+.fb-warn { background: var(--warn-light); border-color: var(--warn); }
+.fb-info { background: var(--info-light); border-color: var(--info); }
+
+.fb-title {
+  font-size: 12px;
+  font-weight: 500;
+  margin-bottom: 3px;
+}
+.fb-ok .fb-title { color: var(--accent); }
+.fb-ng .fb-title { color: var(--danger); }
+.fb-warn .fb-title { color: var(--warn); }
+.fb-info .fb-title { color: var(--info); }
+.fb-body { font-size: 12px; color: var(--text-secondary); line-height: 1.7; }
+
+.next-action {
+  background: var(--bg);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  margin-top: 16px;
+}
+.next-action-label { font-size: 11px; font-weight: 500; color: var(--text-tertiary); margin-bottom: 4px; letter-spacing: 0.05em; text-transform: uppercase; }
+.next-action-text { font-size: 13px; color: var(--text-primary); line-height: 1.7; }
+
+.error-card {
+  background: var(--danger-light);
+  border: 1px solid #F0A0A0;
+  border-radius: var(--radius-md);
+  padding: 16px;
+  margin-bottom: 16px;
+}
+.error-title { font-size: 13px; font-weight: 500; color: var(--danger); margin-bottom: 6px; }
+.error-body { font-size: 12px; color: var(--text-secondary); line-height: 1.7; }
+
+.hint { font-size: 11px; color: var(--text-tertiary); margin-top: -10px; margin-bottom: 14px; line-height: 1.5; }
+
+@media (max-width: 600px) {
+  .container { padding: 20px 16px 60px; }
+  .type-grid { grid-template-columns: repeat(3, 1fr); }
+  .row2 { grid-template-columns: 1fr; }
+  .score-grid { grid-template-columns: 1fr 1fr; }
+  .btn-group { grid-template-columns: 1fr; }
+}
+
+.fade-in { animation: fadeIn 0.4s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+.page { display: none; }
+.page.active { display: block; }
+</style>
+</head>
+<body>
+
+<header class="page-header">
+  <div class="header-inner">
+    <div class="logo">
+      <div class="logo-mark">
+        <svg viewBox="0 0 16 16"><path d="M8 2L10 6H14L11 9L12 13L8 11L4 13L5 9L2 6H6L8 2Z"/></svg>
+      </div>
+      <div>
+        <div class="logo-text">すみよし</div>
+        <div class="logo-sub">目標設定AIサポート</div>
+      </div>
+    </div>
+    <div class="step-indicator" id="stepDots">
+      <div class="step-dot active" id="dot0"></div>
+      <div class="step-dot" id="dot1"></div>
+      <div class="step-dot" id="dot2"></div>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- STEP 0: API KEY -->
+  <div class="page active" id="page0">
+    <div class="fade-in">
+      <p class="section-title">はじめに</p>
+      <div class="card">
+        <div class="card-title">APIキーを入力してください</div>
+        <div class="api-note">
+          <p><strong>このツールはAnthropicのAPIを使用します。</strong><br>
+          APIキーは <a href="https://console.anthropic.com" target="_blank" style="color:var(--warn)">console.anthropic.com</a> から取得できます。入力したキーはブラウザ内のみで使用され、外部に送信されません。</p>
+        </div>
+        <label>Anthropic APIキー</label>
+        <input type="text" id="apiKey" placeholder="sk-ant-api03-...">
+        <p class="hint">※ このキーはページを閉じると消えます。毎回入力が必要です。</p>
+        <button class="btn-accent" onclick="goPage(1)">次へ →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 1: BASIC INFO -->
+  <div class="page" id="page1">
+    <div class="fade-in">
+      <p class="section-title">ステップ 1 / 3　基本情報</p>
+      <div class="card">
+        <div class="card-title">あなたの情報を入力してください</div>
+        <label>氏名</label>
+        <input type="text" id="name" placeholder="例：田中 一郎">
+        <div class="row2">
+          <div>
+            <label>等級</label>
+            <select id="grade">
+              <option value="">選択してください</option>
+              <option value="1">等級Ⅰ（基礎実行）</option>
+              <option value="2">等級Ⅱ（主体性）</option>
+              <option value="3">等級Ⅲ（自律・成果創出）</option>
+              <option value="4">等級Ⅳ（推進・合意形成）</option>
+              <option value="5">等級Ⅴ（事業牽引・変革）</option>
+            </select>
+          </div>
+          <div>
+            <label>期</label>
+            <select id="term">
+              <option value="前期">前期（4〜9月）</option>
+              <option value="後期">後期（10〜3月）</option>
+            </select>
+          </div>
+        </div>
+        <label>部門・担当業務</label>
+        <input type="text" id="dept" placeholder="例：事業責任者 / 経理・労務">
+        <button class="btn-accent" onclick="goPage(2)">次へ →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 2: GOALS -->
+  <div class="page" id="page2">
+    <div class="fade-in">
+      <p class="section-title">ステップ 2 / 3　目標入力</p>
+
+      <div class="card">
+        <div class="card-title"><span class="card-title-num">1</span>目標①</div>
+        <label>目標内容</label>
+        <textarea id="obj1" placeholder="例：前期末までに新弁当の月商300万円を達成する"></textarea>
+        <label>5類型（複数選択可）</label>
+        <div class="type-grid" id="t1">
+          <div class="type-btn" onclick="toggleType(this)">①付加価値</div>
+          <div class="type-btn" onclick="toggleType(this)">②個人成長</div>
+          <div class="type-btn" onclick="toggleType(this)">③業務改善</div>
+          <div class="type-btn" onclick="toggleType(this)">④組織貢献</div>
+          <div class="type-btn" onclick="toggleType(this)">⑤挑戦・革新</div>
+        </div>
+        <label>KR（主要な結果）</label>
+        <div class="kr-list" id="k1">
+          <div class="kr-row"><span class="kr-num">KR1</span><textarea placeholder="例：Q2末までに法人3社への試食会を開催し、商談化件数2件以上を獲得する"></textarea></div>
+          <div class="kr-row"><span class="kr-num">KR2</span><textarea placeholder="例：前期末時点でリピート購入者率80%以上を維持する"></textarea></div>
+        </div>
+        <button class="add-kr-btn" onclick="addKR('k1')">＋ KRを追加する</button>
+        <label>背景・動機（任意）</label>
+        <textarea id="bg1" style="min-height:60px" placeholder="なぜこの目標を選んだか、現状の課題、達成後の姿（空白でもOK）"></textarea>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="card-title-num">2</span>目標②（任意）</div>
+        <textarea id="obj2" placeholder="2つ目の目標（任意）"></textarea>
+        <div class="type-grid" id="t2">
+          <div class="type-btn" onclick="toggleType(this)">①付加価値</div>
+          <div class="type-btn" onclick="toggleType(this)">②個人成長</div>
+          <div class="type-btn" onclick="toggleType(this)">③業務改善</div>
+          <div class="type-btn" onclick="toggleType(this)">④組織貢献</div>
+          <div class="type-btn" onclick="toggleType(this)">⑤挑戦・革新</div>
+        </div>
+        <div class="kr-list" id="k2">
+          <div class="kr-row"><span class="kr-num">KR1</span><textarea placeholder="KR1（任意）"></textarea></div>
+        </div>
+        <button class="add-kr-btn" onclick="addKR('k2')">＋ KRを追加する</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="card-title-num">3</span>目標③（任意）</div>
+        <textarea id="obj3" placeholder="3つ目の目標（任意）"></textarea>
+        <div class="type-grid" id="t3">
+          <div class="type-btn" onclick="toggleType(this)">①付加価値</div>
+          <div class="type-btn" onclick="toggleType(this)">②個人成長</div>
+          <div class="type-btn" onclick="toggleType(this)">③業務改善</div>
+          <div class="type-btn" onclick="toggleType(this)">④組織貢献</div>
+          <div class="type-btn" onclick="toggleType(this)">⑤挑戦・革新</div>
+        </div>
+        <div class="kr-list" id="k3">
+          <div class="kr-row"><span class="kr-num">KR1</span><textarea placeholder="KR1（任意）"></textarea></div>
+        </div>
+        <button class="add-kr-btn" onclick="addKR('k3')">＋ KRを追加する</button>
+      </div>
+
+      <button class="btn-accent" onclick="runDiagnosis()">AIで目標を診断する →</button>
+    </div>
+  </div>
+
+  <!-- STEP 3: RESULT -->
+  <div class="page" id="page3">
+    <div id="diagResult"></div>
+  </div>
+
+</div>
+
+<script>
+let currentPage = 0;
+
+function goPage(n) {
+  if (n === 1 && !document.getElementById('apiKey').value.trim()) {
+    alert('APIキーを入力してください');
+    return;
+  }
+  if (n === 2 && !document.getElementById('grade').value) {
+    alert('等級を選択してください');
+    return;
+  }
+  document.querySelectorAll('.page').forEach((p, i) => {
+    p.classList.toggle('active', i === n);
+  });
+  for (let i = 0; i < 3; i++) {
+    const dot = document.getElementById('dot' + i);
+    dot.className = 'step-dot' + (i === n ? ' active' : i < n ? ' done' : '');
+  }
+  currentPage = n;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function toggleType(el) { el.classList.toggle('sel'); }
+
+function addKR(listId) {
+  const list = document.getElementById(listId);
+  const n = list.children.length + 1;
+  if (n > 3) return;
+  const row = document.createElement('div');
+  row.className = 'kr-row';
+  row.innerHTML = `<span class="kr-num">KR${n}</span><textarea placeholder="KR${n}"></textarea>`;
+  list.appendChild(row);
+}
+
+function getKRs(id) {
+  return Array.from(document.querySelectorAll('#' + id + ' textarea'))
+    .map(t => t.value.trim()).filter(Boolean);
+}
+
+function getTypes(id) {
+  return Array.from(document.querySelectorAll('#' + id + ' .type-btn.sel'))
+    .map(b => b.textContent.trim());
+}
+
+function buildPrompt() {
+  const gradeMap = {
+    '1': '等級Ⅰ（基礎実行）', '2': '等級Ⅱ（主体性）',
+    '3': '等級Ⅲ（自律・成果創出）', '4': '等級Ⅳ（推進・合意形成）', '5': '等級Ⅴ（事業牽引・変革）'
+  };
+  const grade = gradeMap[document.getElementById('grade').value] || '未選択';
+  const obj1 = document.getElementById('obj1').value.trim();
+  const obj2 = document.getElementById('obj2').value.trim();
+  const obj3 = document.getElementById('obj3').value.trim();
+  if (!obj1) return null;
+
+  let p = `すみよしの人事制度に基づく目標設定の診断をしてください。
+
+被評価者：${document.getElementById('name').value || '未入力'}、${grade}、${document.getElementById('term').value}、${document.getElementById('dept').value || '未入力'}
+
+【制度ルール】
+・5類型：①付加価値創出②個人成長③業務改善④組織貢献⑤挑戦・革新
+・KRは定量化必須、行動でなく結果
+・SMARTの法則（具体的・測定可能・達成可能・関連性・期限）
+・等級別必須類型：Ⅰ→③②、Ⅱ→③②④チーム、Ⅲ→①③仕組化④部門横断②専門性、Ⅳ→①部門④仕組化⑤②リーダー、Ⅴ→①事業⑤④②経営
+・ストレッチ性：能力より少し上、過去の延長でない
+
+【目標①】${obj1}
+類型：${getTypes('t1').join('、') || '未選択'}
+KR：${getKRs('k1').map((k, i) => `KR${i + 1}「${k}」`).join('、') || '未入力'}
+背景：${document.getElementById('bg1').value.trim() || '未入力'}`;
+
+  if (obj2) p += `\n\n【目標②】${obj2}\n類型：${getTypes('t2').join('、') || '未選択'}\nKR：${getKRs('k2').map((k, i) => `KR${i + 1}「${k}」`).join('、') || '未入力'}`;
+  if (obj3) p += `\n\n【目標③】${obj3}\n類型：${getTypes('t3').join('、') || '未選択'}\nKR：${getKRs('k3').map((k, i) => `KR${i + 1}「${k}」`).join('、') || '未入力'}`;
+
+  p += `
+
+以下のJSON形式のみで返答してください（コードブロック不要）：
+{"overall":"通過または要修正または差し戻し","summary":"総合コメント2〜3文","goals":[{"title":"目標の短縮タイトル","smart_score":0から5の整数,"stretch_score":0から5の整数,"type_ok":trueまたはfalse,"kr_ok":trueまたはfalse,"feedbacks":[{"type":"okまたはngまたはwarnまたはinfo","title":"見出し","body":"詳細"}],"rewrite_suggestion":"KR改善案または null"}],"next_action":"次のアクション1〜2文"}`;
+  return p;
+}
+
+async function runDiagnosis() {
+  const obj1 = document.getElementById('obj1').value.trim();
+  if (!obj1) { alert('目標①を入力してください'); return; }
+
+  const apiKey = document.getElementById('apiKey').value.trim();
+  if (!apiKey) { alert('APIキーが見つかりません。最初の画面に戻って入力してください'); return; }
+
+  goPage(3);
+  const result = document.getElementById('diagResult');
+  result.innerHTML = `<div class="loading-state fade-in">
+    <div class="loading-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+    <p class="loading-text">AIが制度基準と照合しています…</p>
+  </div>`;
+
+  const prompt = buildPrompt();
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-allow-browser': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1500,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err?.error?.message || `APIエラー (HTTP ${res.status})`);
+    }
+
+    const data = await res.json();
+    const text = data.content?.[0]?.text || '';
+    let parsed;
+    try {
+      parsed = JSON.parse(text.replace(/```json|```/g, '').trim());
+    } catch (e) {
+      throw new Error('レスポンスの解析に失敗しました。もう一度お試しください。');
+    }
+    renderResult(parsed);
+  } catch (e) {
+    result.innerHTML = `<div class="error-card fade-in">
+      <div class="error-title">エラーが発生しました</div>
+      <div class="error-body">${e.message}<br><br>APIキーが正しいか確認してください。</div>
+    </div>
+    <div class="btn-group">
+      <button class="btn-primary" onclick="goPage(0)">← APIキーを確認する</button>
+      <button class="btn-primary" onclick="goPage(2)">← 目標を修正する</button>
+    </div>`;
+  }
+}
+
+function scoreColor(pct) {
+  return pct >= 80 ? '#2C5F3F' : pct >= 60 ? '#8B5E1A' : '#8B1A1A';
+}
+
+function renderResult(d) {
+  const oc = d.overall === '通過' ? 'badge-pass' : d.overall === '要修正' ? 'badge-warn' : 'badge-fail';
+  const oi = d.overall === '通過' ? '✓ ' : d.overall === '要修正' ? '△ ' : '✗ ';
+
+  let html = `<div class="fade-in">
+  <p class="section-title">ステップ 3 / 3　診断結果</p>
+  <div class="card">
+    <div class="overall-badge ${oc}">${oi}${d.overall}</div>
+    <p class="summary-text">${d.summary}</p>`;
+
+  (d.goals || []).forEach((g, i) => {
+    const sp = Math.round((g.smart_score / 5) * 100);
+    const tp = Math.round((g.stretch_score / 5) * 100);
+    const sc = scoreColor(sp);
+    const tc = scoreColor(tp);
+
+    html += `<div class="goal-section">
+      <p class="goal-title">目標${i + 1}：${g.title || ''}</p>
+      <div class="score-grid">
+        <div class="score-card">
+          <div class="score-label">SMARTスコア</div>
+          <div class="score-value" style="color:${sc}">${g.smart_score}<span style="font-size:13px;color:var(--text-tertiary)">/5</span></div>
+          <div class="score-bar"><div class="score-fill" style="width:${sp}%;background:${sc}"></div></div>
+        </div>
+        <div class="score-card">
+          <div class="score-label">ストレッチ性</div>
+          <div class="score-value" style="color:${tc}">${g.stretch_score}<span style="font-size:13px;color:var(--text-tertiary)">/5</span></div>
+          <div class="score-bar"><div class="score-fill" style="width:${tp}%;background:${tc}"></div></div>
+        </div>
+      </div>
+      <div class="tags">
+        <span class="tag ${g.type_ok ? 'tag-ok' : 'tag-ng'}">${g.type_ok ? '✓ 類型OK' : '△ 類型要確認'}</span>
+        <span class="tag ${g.kr_ok ? 'tag-ok' : 'tag-ng'}">${g.kr_ok ? '✓ KR OK' : '△ KR要修正'}</span>
+      </div>`;
+
+    (g.feedbacks || []).forEach(fb => {
+      html += `<div class="fb-item fb-${fb.type}"><div class="fb-title">${fb.title}</div><div class="fb-body">${fb.body}</div></div>`;
+    });
+
+    if (g.rewrite_suggestion) {
+      html += `<div class="fb-item fb-info"><div class="fb-title">改善提案</div><div class="fb-body">${g.rewrite_suggestion}</div></div>`;
+    }
+    html += '</div>';
+  });
+
+  if (d.next_action) {
+    html += `<div class="next-action">
+      <div class="next-action-label">次のアクション</div>
+      <div class="next-action-text">${d.next_action}</div>
+    </div>`;
+  }
+
+  html += `<div class="btn-group">
+    <button class="btn-primary" onclick="goPage(2)">← 目標を修正する</button>
+    <button class="btn-accent" onclick="goPage(1)">新しく診断する</button>
+  </div></div>`;
+
+  document.getElementById('diagResult').innerHTML = html;
+}
+</script>
+</body>
+</html>
