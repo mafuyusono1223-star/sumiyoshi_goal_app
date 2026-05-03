@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>すみよし｜目標設定AIサポート</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<title>すみよし｜目標・評価管理</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root {
   --bg: #F7F6F2;
@@ -23,772 +23,1029 @@
   --danger-light: #FBE6E6;
   --info: #1A3F6B;
   --info-light: #E6EEF8;
+  --purple: #4A1A7A;
+  --purple-light: #F0EAF8;
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 16px;
-  --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04);
 }
-
 * { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: var(--text-primary); font-size: 14px; line-height: 1.6; min-height: 100vh; }
 
-body {
-  font-family: 'Noto Sans JP', sans-serif;
-  background: var(--bg);
-  color: var(--text-primary);
-  min-height: 100vh;
-  font-size: 14px;
-  line-height: 1.6;
+.header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 12px 20px; position: sticky; top: 0; z-index: 200; }
+.header-inner { max-width: 800px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; }
+.logo { display: flex; align-items: center; gap: 10px; }
+.logo-mark { width: 28px; height: 28px; background: var(--accent); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; }
+.logo-mark svg { width: 12px; height: 12px; fill: white; }
+.logo-text { font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; }
+.logo-sub { font-size: 11px; color: var(--text-tertiary); }
+.header-right { display: flex; align-items: center; gap: 10px; }
+.save-status { font-size: 11px; color: var(--text-tertiary); display: flex; align-items: center; gap: 4px; }
+.save-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent-mid); }
+.user-pill { background: var(--bg); border: 1px solid var(--border-mid); border-radius: 20px; padding: 4px 12px; font-size: 12px; cursor: pointer; color: var(--text-secondary); }
+
+.tabs { background: var(--surface); border-bottom: 1px solid var(--border); overflow-x: auto; }
+.tabs-inner { max-width: 800px; margin: 0 auto; display: flex; padding: 0 20px; }
+.tab { padding: 10px 14px; font-size: 12px; color: var(--text-tertiary); cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; transition: all 0.15s; }
+.tab:hover { color: var(--text-secondary); }
+.tab.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 500; }
+.tab.admin-tab { color: var(--purple); }
+.tab.admin-tab.active { color: var(--purple); border-bottom-color: var(--purple); }
+
+.main { max-width: 800px; margin: 0 auto; padding: 24px 20px 80px; }
+.screen { display: none; }
+.screen.active { display: block; }
+
+.section-label { font-size: 10px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-tertiary); margin-bottom: 10px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px 18px; margin-bottom: 12px; }
+.card-title { font-size: 14px; font-weight: 500; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
+.card-num { width: 22px; height: 22px; border-radius: 50%; font-size: 11px; font-weight: 500; display: flex; align-items: center; justify-content: center; font-family: 'DM Sans', sans-serif; flex-shrink: 0; color: white; }
+
+label { display: block; font-size: 12px; font-weight: 500; color: var(--text-secondary); margin-bottom: 5px; }
+input[type="text"], input[type="password"], textarea, select {
+  width: 100%; padding: 9px 11px; border: 1px solid var(--border-mid); border-radius: var(--radius-md);
+  font-size: 13px; font-family: 'Noto Sans JP', sans-serif; color: var(--text-primary); background: var(--surface); margin-bottom: 12px;
 }
-
-.page-header {
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  padding: 20px 24px;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-}
-
-.header-inner {
-  max-width: 720px;
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.logo {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.logo-mark {
-  width: 32px;
-  height: 32px;
-  background: var(--accent);
-  border-radius: var(--radius-sm);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.logo-mark svg { width: 16px; height: 16px; fill: white; }
-
-.logo-text {
-  font-family: 'DM Sans', sans-serif;
-  font-size: 15px;
-  font-weight: 500;
-  color: var(--text-primary);
-  letter-spacing: -0.02em;
-}
-
-.logo-sub {
-  font-size: 11px;
-  color: var(--text-tertiary);
-  font-weight: 300;
-}
-
-.step-indicator {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.step-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--border-mid);
-  transition: all 0.3s;
-}
-.step-dot.active { background: var(--accent); transform: scale(1.3); }
-.step-dot.done { background: var(--accent-mid); }
-
-.container {
-  max-width: 720px;
-  margin: 0 auto;
-  padding: 32px 24px 80px;
-}
-
-.section-title {
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--text-tertiary);
-  margin-bottom: 16px;
-}
-
-.card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 24px;
-  margin-bottom: 16px;
-  box-shadow: var(--shadow);
-}
-
-.card-title {
-  font-size: 15px;
-  font-weight: 500;
-  color: var(--text-primary);
-  margin-bottom: 20px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.card-title-num {
-  width: 22px;
-  height: 22px;
-  background: var(--accent);
-  color: white;
-  border-radius: 50%;
-  font-size: 11px;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: 'DM Sans', sans-serif;
-  flex-shrink: 0;
-}
-
-label {
-  display: block;
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--text-secondary);
-  margin-bottom: 6px;
-}
-
-input[type="text"], select, textarea {
-  width: 100%;
-  padding: 10px 12px;
-  border: 1px solid var(--border-mid);
-  border-radius: var(--radius-md);
-  font-size: 13px;
-  font-family: 'Noto Sans JP', sans-serif;
-  color: var(--text-primary);
-  background: var(--surface);
-  margin-bottom: 16px;
-  transition: border-color 0.2s, box-shadow 0.2s;
-  appearance: none;
-}
-
-input[type="text"]:focus, select:focus, textarea:focus {
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(44, 95, 63, 0.1);
-}
-
-textarea { resize: vertical; min-height: 72px; line-height: 1.6; }
-
-select {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23A8A49C' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 12px center;
-  padding-right: 32px;
-  cursor: pointer;
-}
+input:focus, textarea:focus, select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(44,95,63,0.08); }
+textarea { resize: vertical; min-height: 68px; line-height: 1.6; }
+select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23A8A49C' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
 
 .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
-.type-grid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 6px;
-  margin-bottom: 16px;
-}
+.tip-wrap { position: relative; display: inline-flex; align-items: center; margin-left: 5px; }
+.tip-icon { width: 15px; height: 15px; border-radius: 50%; background: var(--border-mid); color: var(--text-tertiary); font-size: 9px; display: inline-flex; align-items: center; justify-content: center; cursor: help; font-style: normal; }
+.tooltip { display: none; position: absolute; top: calc(100% + 6px); left: 0; z-index: 400; background: #1A1917; color: white; font-size: 11px; line-height: 1.7; padding: 10px 13px; border-radius: var(--radius-md); min-width: 240px; max-width: 300px; pointer-events: none; }
+.tooltip::before { content: ''; position: absolute; top: -4px; left: 12px; width: 8px; height: 8px; background: #1A1917; transform: rotate(45deg); }
+.tip-icon:hover + .tooltip { display: block; }
+.tip-good { color: #9FE1CB; font-size: 10px; font-weight: 500; margin: 5px 0 2px; }
+.tip-bad { color: #F09595; font-size: 10px; font-weight: 500; margin: 5px 0 2px; }
+.tip-li { margin-left: 10px; font-size: 11px; }
 
-.type-btn {
-  padding: 8px 4px;
-  border: 1px solid var(--border-mid);
-  border-radius: var(--radius-sm);
-  font-size: 11px;
-  font-family: 'Noto Sans JP', sans-serif;
-  text-align: center;
-  cursor: pointer;
-  background: var(--bg);
-  color: var(--text-secondary);
-  line-height: 1.4;
-  transition: all 0.15s;
-  user-select: none;
-}
+.type-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin-bottom: 12px; }
+.type-btn { padding: 7px 3px; border: 1px solid var(--border-mid); border-radius: var(--radius-sm); font-size: 11px; text-align: center; cursor: pointer; background: var(--bg); color: var(--text-secondary); line-height: 1.4; transition: all 0.15s; user-select: none; }
+.type-btn.sel { background: var(--accent-light); border-color: var(--accent); color: var(--accent); font-weight: 500; }
 
-.type-btn:hover { border-color: var(--accent-mid); color: var(--accent); }
-.type-btn.sel {
-  background: var(--accent-light);
-  border-color: var(--accent);
-  color: var(--accent);
-  font-weight: 500;
-}
-
-.kr-list { margin-bottom: 8px; }
-.kr-row { display: flex; gap: 8px; align-items: flex-start; margin-bottom: 8px; }
-.kr-num {
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--text-tertiary);
-  min-width: 28px;
-  padding-top: 11px;
-  font-family: 'DM Sans', sans-serif;
-}
-.kr-row textarea { margin-bottom: 0; min-height: 52px; }
-
-.add-kr-btn {
-  background: none;
-  border: 1px dashed var(--border-mid);
-  border-radius: var(--radius-sm);
-  color: var(--text-tertiary);
-  font-size: 12px;
-  font-family: 'Noto Sans JP', sans-serif;
-  cursor: pointer;
-  padding: 6px 12px;
-  width: 100%;
-  margin-bottom: 16px;
-  transition: all 0.15s;
-}
+.kr-list { margin-bottom: 6px; }
+.kr-row { display: flex; gap: 8px; align-items: flex-start; margin-bottom: 6px; }
+.kr-num { font-size: 11px; font-weight: 500; color: var(--text-tertiary); min-width: 26px; padding-top: 10px; font-family: 'DM Sans', sans-serif; }
+.kr-row textarea { margin-bottom: 0; min-height: 48px; }
+.add-kr-btn { background: none; border: 1px dashed var(--border-mid); border-radius: var(--radius-sm); color: var(--text-tertiary); font-size: 12px; font-family: 'Noto Sans JP', sans-serif; cursor: pointer; padding: 5px 12px; width: 100%; margin-bottom: 12px; transition: all 0.15s; }
 .add-kr-btn:hover { border-color: var(--accent); color: var(--accent); }
 
-.btn-primary {
-  width: 100%;
-  padding: 12px;
-  background: var(--surface);
-  border: 1px solid var(--border-mid);
-  border-radius: var(--radius-md);
-  font-size: 13px;
-  font-weight: 500;
-  font-family: 'Noto Sans JP', sans-serif;
-  cursor: pointer;
-  color: var(--text-primary);
-  transition: all 0.15s;
-}
-.btn-primary:hover { background: var(--bg); border-color: var(--text-secondary); }
+.val-block { border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; margin-bottom: 10px; }
+.val-header { padding: 10px 14px; background: var(--bg); display: flex; align-items: center; justify-content: space-between; }
+.val-name { font-size: 13px; font-weight: 500; display: flex; align-items: center; }
+.val-def { font-size: 12px; color: var(--text-secondary); padding: 8px 14px; background: var(--bg); border-top: 1px solid var(--border); line-height: 1.6; }
+.val-body { padding: 12px 14px; }
+.sbia-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+.sbia-label { font-size: 10px; font-weight: 500; color: var(--text-tertiary); margin-bottom: 3px; letter-spacing: 0.04em; text-transform: uppercase; }
+.abc-row { display: flex; gap: 6px; margin-bottom: 4px; }
+.abc-btn { flex: 1; padding: 7px 4px; border: 1px solid var(--border-mid); border-radius: var(--radius-md); font-size: 12px; font-weight: 500; text-align: center; cursor: pointer; background: var(--bg); color: var(--text-secondary); transition: all 0.15s; }
+.abc-btn.selA { background: var(--accent-light); border-color: var(--accent-mid); color: #27500A; }
+.abc-btn.selB { background: var(--warn-light); border-color: #854F0B; color: #633806; }
+.abc-btn.selC { background: var(--danger-light); border-color: #A32D2D; color: #791F1F; }
+.abc-hint { font-size: 10px; color: var(--text-tertiary); line-height: 1.5; }
 
-.btn-accent {
-  width: 100%;
-  padding: 13px;
-  background: var(--accent);
-  border: none;
-  border-radius: var(--radius-md);
-  font-size: 13px;
-  font-weight: 500;
-  font-family: 'Noto Sans JP', sans-serif;
-  cursor: pointer;
-  color: white;
-  transition: all 0.15s;
-  letter-spacing: 0.02em;
-}
+.flash-val-select { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 10px; }
+.flash-val-btn { padding: 8px 4px; border: 1px solid var(--border-mid); border-radius: var(--radius-sm); font-size: 11px; text-align: center; cursor: pointer; background: var(--bg); color: var(--text-secondary); line-height: 1.5; transition: all 0.15s; user-select: none; }
+.flash-val-btn.sel { background: var(--accent-light); border-color: var(--accent); color: var(--accent); font-weight: 500; }
+
+.memo-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+.memo-item { background: var(--bg); border-radius: var(--radius-md); padding: 10px 12px; border-left: 3px solid #3B6D11; }
+.memo-item.v4 { border-left-color: #185FA5; }
+.memo-item.v6 { border-left-color: #534AB7; }
+.memo-meta { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+.memo-date { font-size: 10px; color: var(--text-tertiary); }
+.memo-val-tag { font-size: 10px; font-weight: 500; padding: 1px 7px; border-radius: 8px; background: var(--accent-light); color: #27500A; }
+.memo-val-tag.v4 { background: var(--info-light); color: #0C447C; }
+.memo-val-tag.v6 { background: var(--purple-light); color: #3C3489; }
+.memo-text { font-size: 12px; color: var(--text-secondary); line-height: 1.6; }
+
+.month-tabs { display: flex; gap: 4px; margin-bottom: 14px; flex-wrap: wrap; }
+.month-tab { padding: 5px 12px; border: 1px solid var(--border-mid); border-radius: 20px; font-size: 11px; cursor: pointer; color: var(--text-tertiary); background: var(--bg); transition: all 0.15s; }
+.month-tab.active { background: var(--accent-light); border-color: var(--accent); color: var(--accent); font-weight: 500; }
+
+.goal-fold { border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; margin-bottom: 10px; }
+.goal-fold-hd { padding: 9px 12px; background: var(--bg); font-size: 12px; font-weight: 500; cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none; }
+.goal-fold-bd { padding: 10px 12px; font-size: 12px; color: var(--text-secondary); line-height: 1.7; border-top: 1px solid var(--border); display: none; }
+.goal-fold-bd.open { display: block; }
+
+.prog-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.prog-num { font-size: 11px; font-weight: 500; color: var(--text-tertiary); min-width: 28px; }
+.prog-btns { display: flex; gap: 4px; flex: 1; }
+.prog-btn { flex: 1; padding: 6px 2px; border: 1px solid var(--border-mid); border-radius: var(--radius-sm); font-size: 11px; font-weight: 500; text-align: center; cursor: pointer; background: var(--bg); color: var(--text-secondary); transition: all 0.15s; }
+.prog-btn.ok { background: var(--accent-light); border-color: var(--accent-mid); color: #27500A; }
+.prog-btn.warn { background: var(--warn-light); border-color: #854F0B; color: #633806; }
+.prog-btn.ng { background: var(--danger-light); border-color: #A32D2D; color: #791F1F; }
+
+.timestamp-note { font-size: 11px; color: var(--text-tertiary); text-align: right; margin-top: -8px; margin-bottom: 10px; }
+
+.metric-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px; }
+.metric-card { background: var(--bg); border-radius: var(--radius-md); padding: 12px; }
+.metric-label { font-size: 10px; color: var(--text-tertiary); margin-bottom: 4px; }
+.metric-value { font-size: 22px; font-weight: 500; font-family: 'DM Sans', sans-serif; }
+
+.member-table { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+.member-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.1s; }
+.member-row:last-child { border-bottom: none; }
+.member-row:hover { background: var(--bg); }
+.member-info { display: flex; align-items: center; gap: 10px; }
+.avatar { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; flex-shrink: 0; }
+.member-name { font-size: 13px; font-weight: 500; }
+.member-grade { font-size: 11px; color: var(--text-tertiary); }
+.status-area { display: flex; align-items: center; gap: 6px; }
+.sdot { width: 8px; height: 8px; border-radius: 50%; }
+.sdot-ok { background: #639922; }
+.sdot-warn { background: #EF9F27; }
+.sdot-empty { background: var(--border-mid); }
+.status-text { font-size: 10px; color: var(--text-tertiary); }
+
+.btn-accent { background: var(--accent); color: white; border: none; padding: 10px 16px; border-radius: var(--radius-md); font-size: 13px; font-weight: 500; font-family: 'Noto Sans JP', sans-serif; cursor: pointer; width: 100%; transition: background 0.15s; }
 .btn-accent:hover { background: #234D33; }
-.btn-accent:disabled { background: var(--border-mid); cursor: default; }
+.btn-outline { background: var(--surface); color: var(--text-primary); border: 1px solid var(--border-mid); padding: 10px 16px; border-radius: var(--radius-md); font-size: 13px; font-weight: 500; font-family: 'Noto Sans JP', sans-serif; cursor: pointer; width: 100%; }
+.btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
 
-.btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px; }
-
-.api-note {
-  background: var(--warn-light);
-  border: 1px solid #E8C97A;
-  border-radius: var(--radius-md);
-  padding: 14px 16px;
-  margin-bottom: 20px;
-}
-.api-note p { font-size: 12px; color: var(--warn); line-height: 1.7; }
-.api-note strong { font-weight: 500; }
-
-.loading-state {
-  text-align: center;
-  padding: 40px 20px;
-}
-.loading-dots {
-  display: flex;
-  justify-content: center;
-  gap: 6px;
-  margin-bottom: 16px;
-}
-.dot {
-  width: 8px; height: 8px;
-  background: var(--accent);
-  border-radius: 50%;
-  animation: bounce 1.2s ease-in-out infinite;
-}
+.loading { text-align: center; padding: 40px; color: var(--text-tertiary); font-size: 13px; }
+.dots { display: flex; justify-content: center; gap: 5px; margin-bottom: 12px; }
+.dot { width: 8px; height: 8px; background: var(--accent); border-radius: 50%; animation: bounce 1.2s ease-in-out infinite; }
 .dot:nth-child(2) { animation-delay: 0.2s; }
 .dot:nth-child(3) { animation-delay: 0.4s; }
 @keyframes bounce { 0%,80%,100%{transform:scale(0.8);opacity:0.5} 40%{transform:scale(1.2);opacity:1} }
 
-.loading-text { font-size: 13px; color: var(--text-secondary); }
+.error-msg { background: var(--danger-light); border: 1px solid #F09595; border-radius: var(--radius-md); padding: 12px; font-size: 13px; color: var(--danger); margin-bottom: 12px; }
+.success-msg { background: var(--accent-light); border: 1px solid var(--accent-mid); border-radius: var(--radius-md); padding: 12px; font-size: 13px; color: var(--accent); margin-bottom: 12px; }
 
-.overall-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  border-radius: 24px;
-  font-size: 14px;
-  font-weight: 500;
-  margin-bottom: 12px;
-}
-.badge-pass { background: var(--accent-light); color: var(--accent); }
-.badge-warn { background: var(--warn-light); color: var(--warn); }
-.badge-fail { background: var(--danger-light); color: var(--danger); }
+/* SELECT SCREEN */
+.select-screen { max-width: 560px; margin: 60px auto; padding: 0 20px; }
+.select-title { font-size: 22px; font-weight: 500; margin-bottom: 6px; }
+.select-sub { font-size: 13px; color: var(--text-secondary); margin-bottom: 28px; }
+.member-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.member-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 18px 14px; cursor: pointer; text-align: center; transition: all 0.15s; }
+.member-card:hover { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(44,95,63,0.08); }
+.member-avatar-lg { width: 46px; height: 46px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 500; margin: 0 auto 10px; }
+.member-card-name { font-size: 14px; font-weight: 500; }
+.member-card-grade { font-size: 11px; color: var(--text-tertiary); margin-top: 2px; }
 
-.summary-text {
-  font-size: 13px;
-  color: var(--text-secondary);
-  line-height: 1.8;
-  margin-bottom: 20px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid var(--border);
-}
+/* ACCORDION */
+.accordion { border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; margin-bottom: 8px; }
+.acc-header { padding: 10px 14px; background: var(--surface); cursor: pointer; display: flex; align-items: center; justify-content: space-between; font-size: 13px; font-weight: 500; user-select: none; }
+.acc-header:hover { background: var(--bg); }
+.acc-arrow { font-size: 10px; transition: transform 0.2s; color: var(--text-tertiary); }
+.acc-header.open .acc-arrow { transform: rotate(180deg); }
+.acc-body { padding: 12px 14px; background: var(--bg); font-size: 12px; color: var(--text-secondary); line-height: 1.8; display: none; border-top: 1px solid var(--border); }
+.acc-body.show { display: block; }
+.acc-grade { border-color: #A3C4B0; }
+.acc-grade .acc-header { background: var(--accent-light); }
+.acc-upper .acc-header { background: #F5EDE6; }
+.acc-expect .acc-header { background: var(--info-light); }
+.sg-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.sg-box { background: var(--surface); border-radius: var(--radius-sm); padding: 10px 12px; }
+.sg-label { font-size: 10px; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 5px; }
 
-.goal-section {
-  padding-top: 16px;
-  margin-top: 4px;
-}
-
-.goal-title {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text-primary);
-  margin-bottom: 12px;
-}
-
-.score-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-bottom: 12px;
-}
-
-.score-card {
-  background: var(--bg);
-  border-radius: var(--radius-md);
-  padding: 12px;
-}
-
-.score-label { font-size: 11px; color: var(--text-tertiary); margin-bottom: 4px; font-weight: 400; }
-.score-value { font-family: 'DM Sans', sans-serif; font-size: 22px; font-weight: 500; }
-.score-bar { height: 4px; background: var(--border); border-radius: 2px; margin: 6px 0 2px; overflow: hidden; }
-.score-fill { height: 100%; border-radius: 2px; transition: width 0.6s ease; }
-
-.tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
-.tag {
-  font-size: 11px;
-  padding: 3px 10px;
-  border-radius: 20px;
-  font-weight: 500;
-}
-.tag-ok { background: var(--accent-light); color: var(--accent); }
-.tag-ng { background: var(--warn-light); color: var(--warn); }
-
-.fb-item {
-  border-radius: var(--radius-md);
-  padding: 12px 14px;
-  margin-bottom: 8px;
-  border-left: 3px solid;
-}
-.fb-ok { background: var(--accent-light); border-color: var(--accent-mid); }
-.fb-ng { background: var(--danger-light); border-color: var(--danger); }
-.fb-warn { background: var(--warn-light); border-color: var(--warn); }
-.fb-info { background: var(--info-light); border-color: var(--info); }
-
-.fb-title {
-  font-size: 12px;
-  font-weight: 500;
-  margin-bottom: 3px;
-}
-.fb-ok .fb-title { color: var(--accent); }
-.fb-ng .fb-title { color: var(--danger); }
-.fb-warn .fb-title { color: var(--warn); }
-.fb-info .fb-title { color: var(--info); }
-.fb-body { font-size: 12px; color: var(--text-secondary); line-height: 1.7; }
-
-.next-action {
-  background: var(--bg);
-  border-radius: var(--radius-md);
-  padding: 14px 16px;
-  margin-top: 16px;
-}
-.next-action-label { font-size: 11px; font-weight: 500; color: var(--text-tertiary); margin-bottom: 4px; letter-spacing: 0.05em; text-transform: uppercase; }
-.next-action-text { font-size: 13px; color: var(--text-primary); line-height: 1.7; }
-
-.error-card {
-  background: var(--danger-light);
-  border: 1px solid #F0A0A0;
-  border-radius: var(--radius-md);
-  padding: 16px;
-  margin-bottom: 16px;
-}
-.error-title { font-size: 13px; font-weight: 500; color: var(--danger); margin-bottom: 6px; }
-.error-body { font-size: 12px; color: var(--text-secondary); line-height: 1.7; }
-
-.hint { font-size: 11px; color: var(--text-tertiary); margin-top: -10px; margin-bottom: 14px; line-height: 1.5; }
+.pw-screen { padding: 50px 20px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.pw-icon { width: 44px; height: 44px; background: var(--purple-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
 
 @media (max-width: 600px) {
-  .container { padding: 20px 16px 60px; }
   .type-grid { grid-template-columns: repeat(3, 1fr); }
+  .sbia-grid { grid-template-columns: 1fr; }
   .row2 { grid-template-columns: 1fr; }
-  .score-grid { grid-template-columns: 1fr 1fr; }
+  .metric-grid { grid-template-columns: repeat(3, 1fr); }
   .btn-group { grid-template-columns: 1fr; }
+  .sg-grid { grid-template-columns: 1fr; }
+  .flash-val-select { grid-template-columns: 1fr; }
 }
-
-.fade-in { animation: fadeIn 0.4s ease; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-
-.page { display: none; }
-.page.active { display: block; }
 </style>
 </head>
 <body>
 
-<header class="page-header">
+<header class="header" id="appHeader" style="display:none">
   <div class="header-inner">
     <div class="logo">
-      <div class="logo-mark">
-        <svg viewBox="0 0 16 16"><path d="M8 2L10 6H14L11 9L12 13L8 11L4 13L5 9L2 6H6L8 2Z"/></svg>
-      </div>
-      <div>
-        <div class="logo-text">すみよし</div>
-        <div class="logo-sub">目標設定AIサポート</div>
-      </div>
+      <div class="logo-mark"><svg viewBox="0 0 16 16"><path d="M8 2L10 6H14L11 9L12 13L8 11L4 13L5 9L2 6H6L8 2Z"/></svg></div>
+      <div><div class="logo-text">すみよし</div><div class="logo-sub">目標・評価管理</div></div>
     </div>
-    <div class="step-indicator" id="stepDots">
-      <div class="step-dot active" id="dot0"></div>
-      <div class="step-dot" id="dot1"></div>
-      <div class="step-dot" id="dot2"></div>
+    <div class="header-right">
+      <div class="save-status" id="saveStatus" style="display:none">
+        <div class="save-dot"></div><span id="saveText">保存済み</span>
+      </div>
+      <div class="user-pill" onclick="changeUser()" id="userPill"></div>
     </div>
   </div>
 </header>
 
-<div class="container">
-
-  <!-- STEP 0: API KEY -->
-  <div class="page active" id="page0">
-    <div class="fade-in">
-      <p class="section-title">はじめに</p>
-      <div class="card">
-        <div class="card-title">APIキーを入力してください</div>
-        <div class="api-note">
-          <p><strong>このツールはAnthropicのAPIを使用します。</strong><br>
-          APIキーは <a href="https://console.anthropic.com" target="_blank" style="color:var(--warn)">console.anthropic.com</a> から取得できます。入力したキーはブラウザ内のみで使用され、外部に送信されません。</p>
-        </div>
-        <label>Anthropic APIキー</label>
-        <input type="text" id="apiKey" placeholder="sk-ant-api03-...">
-        <p class="hint">※ このキーはページを閉じると消えます。毎回入力が必要です。</p>
-        <button class="btn-accent" onclick="goPage(1)">次へ →</button>
-      </div>
-    </div>
+<div class="tabs" id="appTabs" style="display:none">
+  <div class="tabs-inner">
+    <div class="tab active" onclick="showTab('kisho')">期初設定</div>
+    <div class="tab" onclick="showTab('flash')">メモ</div>
+    <div class="tab" onclick="showTab('monthly')">月次まとめ</div>
+    <div class="tab" onclick="showTab('quarter')">四半期</div>
+    <div class="tab admin-tab" onclick="showTab('admin')">管理者</div>
   </div>
+</div>
 
-  <!-- STEP 1: BASIC INFO -->
-  <div class="page" id="page1">
-    <div class="fade-in">
-      <p class="section-title">ステップ 1 / 3　基本情報</p>
+<!-- SELECT SCREEN -->
+<div id="selectScreen">
+  <div class="select-screen">
+    <div class="select-title">あなたを選んでください</div>
+    <div class="select-sub">期初目標設定・月次ログを記入します</div>
+    <div class="member-grid" id="memberGrid"></div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="appMain" style="display:none">
+  <div class="main">
+
+    <!-- 期初設定 -->
+    <div class="screen active" id="tab-kisho">
+      <p class="section-label">等級情報・期待値</p>
+      <div id="gradeInfo"></div>
+
+      <p class="section-label" style="margin-top:16px">バリュー評価　行動目標</p>
       <div class="card">
-        <div class="card-title">あなたの情報を入力してください</div>
-        <label>氏名</label>
-        <input type="text" id="name" placeholder="例：田中 一郎">
-        <div class="row2">
-          <div>
-            <label>等級</label>
-            <select id="grade">
-              <option value="">選択してください</option>
-              <option value="1">等級Ⅰ（基礎実行）</option>
-              <option value="2">等級Ⅱ（主体性）</option>
-              <option value="3">等級Ⅲ（自律・成果創出）</option>
-              <option value="4">等級Ⅳ（推進・合意形成）</option>
-              <option value="5">等級Ⅴ（事業牽引・変革）</option>
-            </select>
+        <div class="card-title"><span class="card-num" style="background:var(--purple)">V</span>3つのバリューに対する行動目標</div>
+        <div style="background:var(--purple-light);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:14px;font-size:12px;color:var(--purple);line-height:1.7">
+          バリューは行動の型ではなく、判断・行動の方向性を示すコンパスです。A評価（安定した発揮）を目指し、具体的な行動で表現してください。
+        </div>
+        <label>②期待を超える</label>
+        <textarea id="v1" placeholder="相手の期待（要求）を理解し、その一歩先を届けようとする姿勢の行動目標を書いてください" oninput="markDirty()"></textarea>
+        <label>④自分を律し、責任を持つ</label>
+        <textarea id="v2" placeholder="自律駆動できる人になる。自主的に問題を発見し、解決へ行動を起こす行動目標を書いてください" oninput="markDirty()"></textarea>
+        <label>⑥ためらわず発信し、対話で前に進む</label>
+        <textarea id="v3" placeholder="対話の中で、スピードや成果を意識した、よりよい方向へ進むための行動目標を書いてください" oninput="markDirty()"></textarea>
+      </div>
+
+      <p class="section-label">目標管理制度　期初設定</p>
+      <div id="goalForms"></div>
+      <button class="btn-accent" onclick="saveKisho()">保存する</button>
+      <div id="kishoMsg" style="margin-top:10px"></div>
+    </div>
+
+    <!-- フラッシュメモ -->
+    <div class="screen" id="tab-flash">
+      <p class="section-label">フラッシュメモ　気づいたことをすぐ記録</p>
+      <div class="card">
+        <div class="card-title">新しいメモ</div>
+        <label>バリューを選ぶ</label>
+        <div class="flash-val-select">
+          <div class="flash-val-btn sel" onclick="selFlashVal(this,'v2')">②期待を超える</div>
+          <div class="flash-val-btn" onclick="selFlashVal(this,'v4')">④自分を律し、責任を持つ</div>
+          <div class="flash-val-btn" onclick="selFlashVal(this,'v6')">⑥ためらわず発信し、対話で前に進む</div>
+        </div>
+        <input type="hidden" id="flashVal" value="v2">
+        <label>S：いつ・どんな状況だったか <span class="tip-wrap"><i class="tip-icon">?</i><div class="tooltip">いつ・どんな場面で起きたことかを具体的に書く。<br>例：「月次締め前日に上長から数字確認を依頼された」</div></span></label>
+        <textarea id="flashS" placeholder="例：月次締め前日に、上長から数字確認を依頼された" rows="2"></textarea>
+        <label>B：どんな行動をとったか <span class="tip-wrap"><i class="tip-icon">?</i><div class="tooltip">自分がとった具体的な行動を書く。<br>例：「期限2日前に仮集計を提出し、修正点を先に共有した」</div></span></label>
+        <textarea id="flashB" placeholder="例：期限2日前に仮集計を提出し、修正点を先に共有した" rows="2"></textarea>
+        <button class="btn-accent" onclick="saveFlash()">保存する</button>
+        <div id="flashMsg" style="margin-top:8px"></div>
+      </div>
+      <p class="section-label" id="flashListLabel">今月のメモ</p>
+      <div id="flashList"><div class="loading"><div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>読み込み中...</div></div>
+    </div>
+
+    <!-- 月次まとめ -->
+    <div class="screen" id="tab-monthly">
+      <div class="month-tabs" id="monthTabs"></div>
+      <p class="section-label">バリュー評価　月次まとめ</p>
+
+      <div class="val-block">
+        <div class="val-header">
+          <div class="val-name">②期待を超える<span class="tip-wrap"><i class="tip-icon">?</i><div class="tooltip">相手の期待（要求）を理解し、その一歩先を届けようとする姿勢の実例を記入する。<div class="tip-good">Good</div><div class="tip-li">・要求の背景を確認したうえで取り組んだ</div><div class="tip-li">・付加価値（品質・わかりやすさ）を加えた</div><div class="tip-li">・期限前にFBをもらい修正した</div><div class="tip-bad">Bad</div><div class="tip-li">・要求を深掘りせずズレた成果を出した</div><div class="tip-li">・相手の目的を理解せず作業した</div></div></span></div>
+        </div>
+        <div class="val-def">相手の期待（要求）を理解し、その一歩先を届けようとする姿勢の実例を記入する</div>
+        <div class="val-body">
+          <div id="flashRef_v2" style="margin-bottom:10px"></div>
+          <div class="sbia-grid">
+            <div><div class="sbia-label">S：状況</div><textarea id="m_v2s" rows="2" placeholder="いつ・どんな状況だったか" oninput="markDirty()"></textarea></div>
+            <div><div class="sbia-label">B：行動</div><textarea id="m_v2b" rows="2" placeholder="どんな行動をとったか" oninput="markDirty()"></textarea></div>
+            <div><div class="sbia-label">I：影響・結果</div><textarea id="m_v2i" rows="2" placeholder="行動の結果、何が変わったか" oninput="markDirty()"></textarea></div>
+            <div><div class="sbia-label">A：次のアクション</div><textarea id="m_v2a" rows="2" placeholder="次の1ヶ月で何をするか" oninput="markDirty()"></textarea></div>
           </div>
-          <div>
-            <label>期</label>
-            <select id="term">
-              <option value="前期">前期（4〜9月）</option>
-              <option value="後期">後期（10〜3月）</option>
-            </select>
+          <label>自己評価</label>
+          <div class="abc-row">
+            <div class="abc-btn" onclick="selABC(this,'m_v2eval','A')">A　安定して発揮</div>
+            <div class="abc-btn" onclick="selABC(this,'m_v2eval','B')">B　部分的に発揮</div>
+            <div class="abc-btn" onclick="selABC(this,'m_v2eval','C')">C　発揮が見られない</div>
+          </div>
+          <input type="hidden" id="m_v2eval">
+          <div class="abc-hint">A：状況に応じて意図を持って発揮　B：発揮にムラがあった　C：発揮の機会をつくれなかった</div>
+        </div>
+      </div>
+
+      <div class="val-block">
+        <div class="val-header">
+          <div class="val-name">④自分を律し、責任を持つ<span class="tip-wrap"><i class="tip-icon">?</i><div class="tooltip">自律駆動できる人になる。自主的に問題を発見し、解決へ行動を起こした実例を記入する。<div class="tip-good">Good</div><div class="tip-li">・自律駆動で業務を進め、指示待ちにならなかった</div><div class="tip-li">・体調・感情・時間を自己管理し安定した</div><div class="tip-li">・約束・期限を守り責任を果たした</div><div class="tip-bad">Bad</div><div class="tip-li">・指示待ちで主体性がなかった</div><div class="tip-li">・感情に流れ判断が不安定だった</div></div></span></div>
+        </div>
+        <div class="val-def">自律駆動できる人になる。自主的に問題を発見し、解決へ行動を起こした実例を記入する</div>
+        <div class="val-body">
+          <div id="flashRef_v4" style="margin-bottom:10px"></div>
+          <div class="sbia-grid">
+            <div><div class="sbia-label">S：状況</div><textarea id="m_v4s" rows="2" placeholder="いつ・どんな状況だったか" oninput="markDirty()"></textarea></div>
+            <div><div class="sbia-label">B：行動</div><textarea id="m_v4b" rows="2" placeholder="どんな行動をとったか" oninput="markDirty()"></textarea></div>
+            <div><div class="sbia-label">I：影響・結果</div><textarea id="m_v4i" rows="2" placeholder="行動の結果、何が変わったか" oninput="markDirty()"></textarea></div>
+            <div><div class="sbia-label">A：次のアクション</div><textarea id="m_v4a" rows="2" placeholder="次の1ヶ月で何をするか" oninput="markDirty()"></textarea></div>
+          </div>
+          <label>自己評価</label>
+          <div class="abc-row">
+            <div class="abc-btn" onclick="selABC(this,'m_v4eval','A')">A　安定して発揮</div>
+            <div class="abc-btn" onclick="selABC(this,'m_v4eval','B')">B　部分的に発揮</div>
+            <div class="abc-btn" onclick="selABC(this,'m_v4eval','C')">C　発揮が見られない</div>
+          </div>
+          <input type="hidden" id="m_v4eval">
+          <div class="abc-hint">A：状況に応じて意図を持って発揮　B：発揮にムラがあった　C：発揮の機会をつくれなかった</div>
+        </div>
+      </div>
+
+      <div class="val-block">
+        <div class="val-header">
+          <div class="val-name">⑥ためらわず発信し、対話で前に進む<span class="tip-wrap"><i class="tip-icon">?</i><div class="tooltip">対話の中で、スピードや成果を意識した、よりよい方向へ進むための言動の実例を記入する。<div class="tip-good">Good</div><div class="tip-li">・不安・疑問・気づきをためらわず発信した</div><div class="tip-li">・進捗を自発的に共有し助けを求めた</div><div class="tip-li">・論理と敬意をもって伝えた</div><div class="tip-bad">Bad</div><div class="tip-li">・問題を抱え込み対話を避けた</div><div class="tip-li">・情報を共有せず後工程に負担をかけた</div></div></span></div>
+        </div>
+        <div class="val-def">対話の中で、スピードや成果を意識した、よりよい方向へ進むための言動の実例を記入する</div>
+        <div class="val-body">
+          <div id="flashRef_v6" style="margin-bottom:10px"></div>
+          <div class="sbia-grid">
+            <div><div class="sbia-label">S：状況</div><textarea id="m_v6s" rows="2" placeholder="いつ・どんな状況だったか" oninput="markDirty()"></textarea></div>
+            <div><div class="sbia-label">B：行動</div><textarea id="m_v6b" rows="2" placeholder="どんな行動をとったか" oninput="markDirty()"></textarea></div>
+            <div><div class="sbia-label">I：影響・結果</div><textarea id="m_v6i" rows="2" placeholder="行動の結果、何が変わったか" oninput="markDirty()"></textarea></div>
+            <div><div class="sbia-label">A：次のアクション</div><textarea id="m_v6a" rows="2" placeholder="次の1ヶ月で何をするか" oninput="markDirty()"></textarea></div>
+          </div>
+          <label>自己評価</label>
+          <div class="abc-row">
+            <div class="abc-btn" onclick="selABC(this,'m_v6eval','A')">A　安定して発揮</div>
+            <div class="abc-btn" onclick="selABC(this,'m_v6eval','B')">B　部分的に発揮</div>
+            <div class="abc-btn" onclick="selABC(this,'m_v6eval','C')">C　発揮が見られない</div>
+          </div>
+          <input type="hidden" id="m_v6eval">
+          <div class="abc-hint">A：状況に応じて意図を持って発揮　B：発揮にムラがあった　C：発揮の機会をつくれなかった</div>
+        </div>
+      </div>
+
+      <p class="section-label" style="margin-top:4px">目標管理　月次進捗</p>
+      <div id="monthlyGoals"></div>
+
+      <div class="timestamp-note" id="monthlyTimestamp"></div>
+      <button class="btn-accent" onclick="saveMonthly()">保存する</button>
+      <div id="monthlyMsg" style="margin-top:10px"></div>
+    </div>
+
+    <!-- 四半期 -->
+    <div class="screen" id="tab-quarter">
+      <div class="month-tabs" id="quarterTabs"></div>
+      <p class="section-label">バリュー評価　四半期まとめ</p>
+      <div class="card">
+        <div class="card-title">四半期バリュー評価</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px">
+          <div style="text-align:center;background:var(--bg);border-radius:var(--radius-md);padding:12px 6px">
+            <div style="font-size:10px;color:var(--text-tertiary);margin-bottom:6px;line-height:1.4">②期待を超える</div>
+            <div class="abc-row" style="flex-direction:column;gap:4px">
+              <div class="abc-btn" style="font-size:11px" onclick="selABC(this,'q_v2eval','A')">A</div>
+              <div class="abc-btn" style="font-size:11px" onclick="selABC(this,'q_v2eval','B')">B</div>
+              <div class="abc-btn" style="font-size:11px" onclick="selABC(this,'q_v2eval','C')">C</div>
+            </div>
+            <input type="hidden" id="q_v2eval">
+          </div>
+          <div style="text-align:center;background:var(--bg);border-radius:var(--radius-md);padding:12px 6px">
+            <div style="font-size:10px;color:var(--text-tertiary);margin-bottom:6px;line-height:1.4">④自分を律す</div>
+            <div class="abc-row" style="flex-direction:column;gap:4px">
+              <div class="abc-btn" style="font-size:11px" onclick="selABC(this,'q_v4eval','A')">A</div>
+              <div class="abc-btn" style="font-size:11px" onclick="selABC(this,'q_v4eval','B')">B</div>
+              <div class="abc-btn" style="font-size:11px" onclick="selABC(this,'q_v4eval','C')">C</div>
+            </div>
+            <input type="hidden" id="q_v4eval">
+          </div>
+          <div style="text-align:center;background:var(--bg);border-radius:var(--radius-md);padding:12px 6px">
+            <div style="font-size:10px;color:var(--text-tertiary);margin-bottom:6px;line-height:1.4">⑥発信・対話</div>
+            <div class="abc-row" style="flex-direction:column;gap:4px">
+              <div class="abc-btn" style="font-size:11px" onclick="selABC(this,'q_v6eval','A')">A</div>
+              <div class="abc-btn" style="font-size:11px" onclick="selABC(this,'q_v6eval','B')">B</div>
+              <div class="abc-btn" style="font-size:11px" onclick="selABC(this,'q_v6eval','C')">C</div>
+            </div>
+            <input type="hidden" id="q_v6eval">
           </div>
         </div>
-        <label>部門・担当業務</label>
-        <input type="text" id="dept" placeholder="例：事業責任者 / 経理・労務">
-        <button class="btn-accent" onclick="goPage(2)">次へ →</button>
+        <label>四半期総合コメント</label>
+        <textarea id="q_comment" rows="3" placeholder="3ヶ月を振り返り、成長と課題を書いてください" oninput="markDirty()"></textarea>
+        <label>次の四半期への意図</label>
+        <textarea id="q_intent" rows="2" placeholder="次の3ヶ月で特に意識することを書いてください" oninput="markDirty()"></textarea>
+      </div>
+
+      <p class="section-label">目標管理　四半期達成率</p>
+      <div class="card">
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px" id="quarterRates"></div>
+        <label style="margin-bottom:6px;font-size:11px;color:var(--text-tertiary)">達成率は月次まとめのKR進捗（○=1点・△=0.5点・✕=0点）から自動計算されます</label>
+      </div>
+
+      <div class="timestamp-note" id="quarterTimestamp"></div>
+      <button class="btn-accent" onclick="saveQuarter()">保存する</button>
+      <div id="quarterMsg" style="margin-top:10px"></div>
+    </div>
+
+    <!-- 管理者 -->
+    <div class="screen" id="tab-admin">
+      <div class="pw-screen" id="pwScreen">
+        <div class="pw-icon">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="4" y="9" width="12" height="10" rx="2" stroke="#4A1A7A" stroke-width="1.5"/><path d="M7 9V7a3 3 0 016 0v2" stroke="#4A1A7A" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </div>
+        <div style="font-size:15px;font-weight:500">管理者パスワード</div>
+        <div style="font-size:12px;color:var(--text-tertiary);text-align:center">評価者のみアクセスできます</div>
+        <input type="password" id="pwInput" placeholder="パスワードを入力" style="max-width:220px;text-align:center;margin-bottom:0">
+        <button class="btn-accent" style="max-width:220px" onclick="adminLogin()">ログイン</button>
+        <div id="pwMsg"></div>
+      </div>
+
+      <div id="dashScreen" style="display:none">
+        <p class="section-label">管理者ダッシュボード</p>
+        <div class="metric-grid" id="dashMetrics"></div>
+        <div class="member-table" id="dashMembers"></div>
       </div>
     </div>
+
   </div>
-
-  <!-- STEP 2: GOALS -->
-  <div class="page" id="page2">
-    <div class="fade-in">
-      <p class="section-title">ステップ 2 / 3　目標入力</p>
-
-      <div class="card">
-        <div class="card-title"><span class="card-title-num">1</span>目標①</div>
-        <label>目標内容</label>
-        <textarea id="obj1" placeholder="例：前期末までに新弁当の月商300万円を達成する"></textarea>
-        <label>5類型（複数選択可）</label>
-        <div class="type-grid" id="t1">
-          <div class="type-btn" onclick="toggleType(this)">①付加価値</div>
-          <div class="type-btn" onclick="toggleType(this)">②個人成長</div>
-          <div class="type-btn" onclick="toggleType(this)">③業務改善</div>
-          <div class="type-btn" onclick="toggleType(this)">④組織貢献</div>
-          <div class="type-btn" onclick="toggleType(this)">⑤挑戦・革新</div>
-        </div>
-        <label>KR（主要な結果）</label>
-        <div class="kr-list" id="k1">
-          <div class="kr-row"><span class="kr-num">KR1</span><textarea placeholder="例：Q2末までに法人3社への試食会を開催し、商談化件数2件以上を獲得する"></textarea></div>
-          <div class="kr-row"><span class="kr-num">KR2</span><textarea placeholder="例：前期末時点でリピート購入者率80%以上を維持する"></textarea></div>
-        </div>
-        <button class="add-kr-btn" onclick="addKR('k1')">＋ KRを追加する</button>
-        <label>背景・動機（任意）</label>
-        <textarea id="bg1" style="min-height:60px" placeholder="なぜこの目標を選んだか、現状の課題、達成後の姿（空白でもOK）"></textarea>
-      </div>
-
-      <div class="card">
-        <div class="card-title"><span class="card-title-num">2</span>目標②（任意）</div>
-        <textarea id="obj2" placeholder="2つ目の目標（任意）"></textarea>
-        <div class="type-grid" id="t2">
-          <div class="type-btn" onclick="toggleType(this)">①付加価値</div>
-          <div class="type-btn" onclick="toggleType(this)">②個人成長</div>
-          <div class="type-btn" onclick="toggleType(this)">③業務改善</div>
-          <div class="type-btn" onclick="toggleType(this)">④組織貢献</div>
-          <div class="type-btn" onclick="toggleType(this)">⑤挑戦・革新</div>
-        </div>
-        <div class="kr-list" id="k2">
-          <div class="kr-row"><span class="kr-num">KR1</span><textarea placeholder="KR1（任意）"></textarea></div>
-        </div>
-        <button class="add-kr-btn" onclick="addKR('k2')">＋ KRを追加する</button>
-      </div>
-
-      <div class="card">
-        <div class="card-title"><span class="card-title-num">3</span>目標③（任意）</div>
-        <textarea id="obj3" placeholder="3つ目の目標（任意）"></textarea>
-        <div class="type-grid" id="t3">
-          <div class="type-btn" onclick="toggleType(this)">①付加価値</div>
-          <div class="type-btn" onclick="toggleType(this)">②個人成長</div>
-          <div class="type-btn" onclick="toggleType(this)">③業務改善</div>
-          <div class="type-btn" onclick="toggleType(this)">④組織貢献</div>
-          <div class="type-btn" onclick="toggleType(this)">⑤挑戦・革新</div>
-        </div>
-        <div class="kr-list" id="k3">
-          <div class="kr-row"><span class="kr-num">KR1</span><textarea placeholder="KR1（任意）"></textarea></div>
-        </div>
-        <button class="add-kr-btn" onclick="addKR('k3')">＋ KRを追加する</button>
-      </div>
-
-      <button class="btn-accent" onclick="runDiagnosis()">AIで目標を診断する →</button>
-    </div>
-  </div>
-
-  <!-- STEP 3: RESULT -->
-  <div class="page" id="page3">
-    <div id="diagResult"></div>
-  </div>
-
 </div>
 
 <script>
-let currentPage = 0;
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbzkUv51E97OUCo5PxiSQvS-qKgD34LH0TPMiYkJY8nwRNGesl8BmKQ4BM3JHfONz063/exec';
 
-function goPage(n) {
-  if (n === 1 && !document.getElementById('apiKey').value.trim()) {
-    alert('APIキーを入力してください');
-    return;
-  }
-  if (n === 2 && !document.getElementById('grade').value) {
-    alert('等級を選択してください');
-    return;
-  }
-  document.querySelectorAll('.page').forEach((p, i) => {
-    p.classList.toggle('active', i === n);
-  });
-  for (let i = 0; i < 3; i++) {
-    const dot = document.getElementById('dot' + i);
-    dot.className = 'step-dot' + (i === n ? ' active' : i < n ? ' done' : '');
-  }
-  currentPage = n;
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+const MEMBERS = {
+  tanaka:  { name:'田中靖弘',  grade:'Ⅲ-b', color:'#2C5F3F', bg:'#EAF2ED', gradeDesc:'自律的で、成果を出し続けられる人（巻き込み）', gradeReq:'経営計画や部門戦略を理解し、自部門・担当業務の目標を自ら設定できる\n問題課題の抽出から解決までを一貫して実行できる（再現性がある）\n周囲を巻き込みながら、定量成果および質的効果を継続的に創出できる\n他部門との連携を通じて、チーム単位を超えた貢献を実現している', upperReq:'他部門の役割と課題を理解し、全社的最適解を志向して行動している\n上位の意図を咀嚼し、自らの言葉で下位等級に伝える力を有する\n3等級以下のメンバーを育成するマネジメント能力を有する', strength:'安定稼働と現場改善の実行力が高い。改善→時間創出→価値創出という発想があり、改善の質が高い。学びを素早く実践に落とし込む力がある。', growth:'部門横断の調整・合意形成を強化する必要がある。中長期視点での業務設計・仕組み化が課題。全社視点での判断力を強化する必要がある。', requiredTypes:'①付加価値創出 ③業務改善(仕組化) ④組織貢献(部門横断) ②個人成長(専門性)' },
+  arakawa: { name:'荒川和之',  grade:'Ⅱ',   color:'#4A7AB5', bg:'#E6EEF8', gradeDesc:'物事を主体化し、バリューを体現できる人', gradeReq:'自らの言動を通じて、MVVや求める人物像を体現している\n繰り返し業務に留まらず、業務の意味や背景を捉え、主体的に改善提案ができる\n応用的な業務を遂行できる\nチーム内で円滑な関係構築を図り、協働を促す行動がとれる', upperReq:'経営計画や部門戦略を理解し、自部門・担当業務の目標を自ら設定できる\n問題課題の抽出から解決までを一貫して実行できる（再現性がある）', strength:'小さな課題であれば、即座に着手し短時間で解決する行動力がある。現場の状況を踏まえた現実的な解決策を選択できる。', growth:'個人の行動力だけでなく組織としての生産性向上に寄与する動きを強化したい。協働を通じて、より大きな成果に繋げる動きを強化したい。', requiredTypes:'③業務改善 ②個人成長 ④組織貢献(チーム単位)' },
+  yoshida: { name:'吉田爽夏',  grade:'Ⅰ',   color:'#8B5E1A', bg:'#FBF3E6', gradeDesc:'問題解決を意欲的に推進できる人', gradeReq:'MVVを理解し、共感の意を日常行動に表している\n上司の支援のもと、基本的な業務を期日内に完遂できる\n業務上の課題に対し、能動的に原因を探り、解決策を提案しようとする姿勢を持つ', upperReq:'自らの言動を通じて、MVVや求める人物像を体現している\n繰り返し業務に留まらず、業務の意味や背景を捉え、主体的に改善提案ができる\n応用的な業務を遂行できる', strength:'小さな課題であればスピード感をもって解決に向けられる行動力がある。業務のスピードが早く作業量が多い場面でも前向きに取り組める。', growth:'自分で気づける問題の範囲を広げ、指摘される前に動ける状態を目指したい。スピードだけでなく正確性とのバランスを意識したい。', requiredTypes:'③業務改善 ②個人成長' },
+  kanno:   { name:'閑野里菜',  grade:'Ⅰ',   color:'#8B5E1A', bg:'#FBF3E6', gradeDesc:'問題解決を意欲的に推進できる人', gradeReq:'MVVを理解し、共感の意を日常行動に表している\n上司の支援のもと、基本的な業務を期日内に完遂できる\n業務上の課題に対し、能動的に原因を探り、解決策を提案しようとする姿勢を持つ', upperReq:'自らの言動を通じて、MVVや求める人物像を体現している\n繰り返し業務に留まらず、業務の意味や背景を捉え、主体的に改善提案ができる', strength:'現場で起きた問題に対して行動に移るスピード感があり緊急度が高い場面でも対応できる。現場とのコミュニケーションが得意で頼られる存在。', growth:'業務の意味や背景を理解し、作業ベースから脱却して判断の質をさらに高めたい。問題の原因をあとから考えるのではなく、事前に予測し未然防止につなげる視点をもちたい。', requiredTypes:'③業務改善 ②個人成長' },
+  maeda:   { name:'前田聖子',  grade:'Ⅰ',   color:'#8B5E1A', bg:'#FBF3E6', gradeDesc:'問題解決を意欲的に推進できる人', gradeReq:'MVVを理解し、共感の意を日常行動に表している\n上司の支援のもと、基本的な業務を期日内に完遂できる\n業務上の課題に対し、能動的に原因を探り、解決策を提案しようとする姿勢を持つ', upperReq:'自らの言動を通じて、MVVや求める人物像を体現している\n繰り返し業務に留まらず、業務の意味や背景を捉え、主体的に改善提案ができる', strength:'（評価者より確認してください）', growth:'（評価者より確認してください）', requiredTypes:'③業務改善 ②個人成長' },
+  minowa:  { name:'蓑輪あおい', grade:'Ⅱ',  color:'#4A7AB5', bg:'#E6EEF8', gradeDesc:'物事を主体化し、バリューを体現できる人', gradeReq:'自らの言動を通じて、MVVや求める人物像を体現している\n繰り返し業務に留まらず、業務の意味や背景を捉え、主体的に改善提案ができる\n応用的な業務を遂行できる\nチーム内で円滑な関係構築を図り、協働を促す行動がとれる', upperReq:'経営計画や部門戦略を理解し、自部門・担当業務の目標を自ら設定できる（a）\n問題課題の抽出から解決までを一貫して実行できる（再現性がある）（a）', strength:'業務改善および効率化に対する意識が高く、現場業務の整理や運用の見直しに継続的に取り組んでいる。営業部門や関係部署と連携しながら業務を推進している。', growth:'個別の業務改善にとどまらず、改善の成果を数値で可視化し、組織全体の生産性向上につなげる視点を強化してほしい。', requiredTypes:'③業務改善 ②個人成長 ④組織貢献(チーム単位)' },
+  misaki:  { name:'三崎政二',  grade:'Ⅲ-a', color:'#2C5F3F', bg:'#EAF2ED', gradeDesc:'自律的で、成果を出し続けられる人（再現性）', gradeReq:'経営計画や部門戦略を理解し、自部門・担当業務の目標を自ら設定できる（a）\n問題課題の抽出から解決までを一貫して実行できる（再現性がある）（a）', upperReq:'周囲を巻き込みながら、定量成果および質的効果を継続的に創出できる（b）\n他部門との連携を通じて、チーム単位を超えた貢献を実現している（b）', strength:'顧客との関係構築に積極的に取り組み、訪問やヒアリングを通じて顧客ニーズの把握に努めている。', growth:'営業活動を「行動」で終わらせず、売上拡大や単価向上といった成果につなげる意識をより強化してほしい。', requiredTypes:'①付加価値創出 ③業務改善(仕組化) ④組織貢献(部門横断) ②個人成長(専門性)' }
+};
+
+let currentUser = null;
+let isDirty = false;
+let saveTimer = null;
+let currentMonth = '';
+let currentQuarter = '';
+
+function getYearMonth() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
 }
 
-function toggleType(el) { el.classList.toggle('sel'); }
+function getQuarterLabel(ym) {
+  const [y, m] = ym.split('-').map(Number);
+  const fiscalM = ((m - 4 + 12) % 12) + 1;
+  const q = Math.ceil(fiscalM / 3);
+  const fy = m >= 4 ? y : y - 1;
+  return `${fy}年度 ${q}Q`;
+}
+
+function init() {
+  const grid = document.getElementById('memberGrid');
+  Object.entries(MEMBERS).forEach(([key, m]) => {
+    const card = document.createElement('div');
+    card.className = 'member-card';
+    card.innerHTML = `<div class="member-avatar-lg" style="background:${m.bg};color:${m.color}">${m.name[0]}</div><div class="member-card-name">${m.name}</div><div class="member-card-grade">等級 ${m.grade}</div>`;
+    card.onclick = () => selectUser(key);
+    grid.appendChild(card);
+  });
+  currentMonth = getYearMonth();
+  currentQuarter = getQuarterLabel(currentMonth);
+}
+
+function selectUser(key) {
+  currentUser = key;
+  const m = MEMBERS[key];
+  document.getElementById('selectScreen').style.display = 'none';
+  document.getElementById('appMain').style.display = 'block';
+  document.getElementById('appHeader').style.display = 'block';
+  document.getElementById('appTabs').style.display = 'block';
+  document.getElementById('userPill').textContent = m.name + ' ▾';
+  renderGradeInfo(m);
+  renderGoalForms(m);
+  renderMonthTabs();
+  renderQuarterTabs();
+  loadKisho();
+  loadFlash();
+  loadMonthly(currentMonth);
+}
+
+function changeUser() {
+  currentUser = null;
+  document.getElementById('selectScreen').style.display = 'block';
+  document.getElementById('appMain').style.display = 'none';
+  document.getElementById('appHeader').style.display = 'none';
+  document.getElementById('appTabs').style.display = 'none';
+}
+
+function showTab(name) {
+  document.querySelectorAll('.tab').forEach((t,i) => {
+    const names = ['kisho','flash','monthly','quarter','admin'];
+    t.classList.toggle('active', names[i] === name);
+  });
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  if(name === 'flash') loadFlash();
+  if(name === 'monthly') loadMonthly(currentMonth);
+  if(name === 'quarter') loadQuarter(currentQuarter);
+  if(name === 'admin') { document.getElementById('pwScreen').style.display='flex'; document.getElementById('dashScreen').style.display='none'; }
+}
+
+function renderGradeInfo(m) {
+  document.getElementById('gradeInfo').innerHTML = `
+    <div class="accordion acc-grade"><div class="acc-header" onclick="toggleAcc(this)"><span>現在の等級 ${m.grade}：${m.gradeDesc}</span><span class="acc-arrow">▼</span></div><div class="acc-body">${m.gradeReq.replace(/\n/g,'<br>')}</div></div>
+    <div class="accordion acc-upper"><div class="acc-header" onclick="toggleAcc(this)"><span>ひとつ上の等級要件（成長の方向性）</span><span class="acc-arrow">▼</span></div><div class="acc-body">${m.upperReq.replace(/\n/g,'<br>')}</div></div>
+    <div class="accordion acc-expect"><div class="acc-header" onclick="toggleAcc(this)"><span>評価者からの期待値</span><span class="acc-arrow">▼</span></div><div class="acc-body"><div class="sg-grid"><div class="sg-box"><div class="sg-label" style="color:var(--accent)">Strength（強み）</div><div style="font-size:12px;color:var(--text-secondary);line-height:1.7">${m.strength}</div></div><div class="sg-box"><div class="sg-label" style="color:var(--warn)">Growth（成長課題）</div><div style="font-size:12px;color:var(--text-secondary);line-height:1.7">${m.growth}</div></div></div></div></div>`;
+}
+
+function toggleAcc(header) {
+  header.classList.toggle('open');
+  header.nextElementSibling.classList.toggle('show');
+}
+
+function renderGoalForms(m) {
+  let html = '';
+  for(let i=1;i<=3;i++){
+    const opt = i>1?' （任意）':'';
+    html += `<div class="card" style="margin-bottom:12px">
+      <div class="card-title"><span class="card-num" style="background:#4A7AB5">${i}</span>目標${i}${opt}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px;align-items:center">
+        <span style="font-size:11px;color:var(--text-tertiary)">必須類型：</span>
+        ${m.requiredTypes.split(' ').map(t=>`<span style="font-size:11px;padding:2px 8px;border-radius:12px;background:var(--warn-light);color:var(--warn);font-weight:500;border:1px solid #E8C97A">${t}</span>`).join('')}
+      </div>
+      <label>通期目標 <span class="tip-wrap"><i class="tip-icon">?</i><div class="tooltip">半年では完結しない"本質的な成果"を書く。期限を明記し、KRで測れる形にする。<br>例：「前期末までに○○を達成し、△△を実現する」</div></span></label>
+      <textarea id="g${i}_通期" placeholder="例：前期末までに○○を達成する" oninput="markDirty()"></textarea>
+      <label>半期目標 <span class="tip-wrap"><i class="tip-icon">?</i><div class="tooltip">通期目標を達成するためのフェーズ。半年で達成可能な範囲に分解して書く。</div></span></label>
+      <textarea id="g${i}_半期" placeholder="通期目標のマイルストーン（半年で達成可能な範囲）" oninput="markDirty()"></textarea>
+      <label>5類型（複数選択可）</label>
+      <div class="type-grid" id="types${i}">
+        <div class="type-btn" onclick="toggleType(this)">①付加価値</div>
+        <div class="type-btn" onclick="toggleType(this)">②個人成長</div>
+        <div class="type-btn" onclick="toggleType(this)">③業務改善</div>
+        <div class="type-btn" onclick="toggleType(this)">④組織貢献</div>
+        <div class="type-btn" onclick="toggleType(this)">⑤挑戦・革新</div>
+      </div>
+      <label>KR（主要な結果） <span class="tip-wrap"><i class="tip-icon">?</i><div class="tooltip">KRは「行動」ではなく「結果・状態」で書く。必ず定量化する。<br>✓ OK：「○○率を△△%に改善する」<br>✗ NG：「会議に参加する」「頑張る」</div></span></label>
+      <div class="kr-list" id="kr${i}">
+        <div class="kr-row"><span class="kr-num">KR1</span><textarea placeholder="例：○月末までに△△を達成する" oninput="markDirty()"></textarea></div>
+        <div class="kr-row"><span class="kr-num">KR2</span><textarea placeholder="KR2（任意）" oninput="markDirty()"></textarea></div>
+      </div>
+      <button class="add-kr-btn" onclick="addKR('kr${i}')">＋ KRを追加する</button>
+      <label>背景・動機 <span class="tip-wrap"><i class="tip-icon">?</i><div class="tooltip">① なぜこの目標を選んだのか（動機）<br>② 今どこにギャップを感じているか（現在地）<br>③ 達成するとどんな未来をつくれるか</div></span></label>
+      <textarea id="g${i}_bg" placeholder="なぜこの目標を選んだのか、現在のギャップ、達成後の姿を書いてください" oninput="markDirty()"></textarea>
+    </div>`;
+  }
+  document.getElementById('goalForms').innerHTML = html;
+}
+
+function renderMonthTabs() {
+  const d = new Date();
+  let html = '';
+  for(let i=2;i>=0;i--) {
+    const dt = new Date(d.getFullYear(), d.getMonth()-i, 1);
+    const ym = dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0');
+    const label = (dt.getMonth()+1)+'月';
+    const active = ym===currentMonth?' active':'';
+    html += `<div class="month-tab${active}" onclick="switchMonth('${ym}',this)">${label}</div>`;
+  }
+  document.getElementById('monthTabs').innerHTML = html;
+  renderMonthlyGoals(currentMonth);
+}
+
+function switchMonth(ym, el) {
+  currentMonth = ym;
+  document.querySelectorAll('#monthTabs .month-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  clearMonthlyForm();
+  loadMonthly(ym);
+  loadFlashRefs(ym);
+  renderMonthlyGoals(ym);
+}
+
+function renderQuarterTabs() {
+  const quarters = [];
+  const d = new Date();
+  for(let i=0;i<4;i++) {
+    const dt = new Date(d.getFullYear(), d.getMonth()-(i*3), 1);
+    const ym = dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0');
+    const q = getQuarterLabel(ym);
+    if(!quarters.find(x=>x.q===q)) quarters.push({q, ym});
+  }
+  let html = '';
+  quarters.forEach((item,i) => {
+    const active = i===0?' active':'';
+    html += `<div class="month-tab${active}" onclick="switchQuarter('${item.q}',this)">${item.q}</div>`;
+  });
+  document.getElementById('quarterTabs').innerHTML = html;
+  renderQuarterRates();
+}
+
+function switchQuarter(q, el) {
+  currentQuarter = q;
+  document.querySelectorAll('#quarterTabs .month-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  loadQuarter(q);
+}
+
+function renderMonthlyGoals(ym) {
+  const m = MEMBERS[currentUser];
+  let html = '';
+  for(let i=1;i<=3;i++){
+    const obj = document.getElementById(`g${i}_通期`)?.value || `目標${i}`;
+    const title = obj.substring(0,30)+(obj.length>30?'…':'');
+    html += `<div class="goal-fold">
+      <div class="goal-fold-hd" onclick="this.nextElementSibling.classList.toggle('open')">
+        目標${i}　${title||'（未設定）'}<span style="font-size:10px;color:var(--text-tertiary)">原文を見る ▾</span>
+      </div>
+      <div class="goal-fold-bd">
+        <strong>通期：</strong>${document.getElementById(`g${i}_通期`)?.value||'（未入力）'}<br>
+        <strong>KR：</strong>${getKRs('kr'+i).map((k,j)=>`KR${j+1}：${k}`).join(' / ')||'（未入力）'}
+      </div>
+    </div>
+    <div style="margin-bottom:12px">
+      ${getKRs('kr'+i).filter(Boolean).map((k,j)=>`
+      <div class="prog-row">
+        <span class="prog-num">KR${j+1}</span>
+        <div class="prog-btns">
+          <div class="prog-btn" onclick="selProg(this,'m_g${i}kr${j+1}','ok')">○ 順調</div>
+          <div class="prog-btn" onclick="selProg(this,'m_g${i}kr${j+1}','warn')">△ やや遅れ</div>
+          <div class="prog-btn" onclick="selProg(this,'m_g${i}kr${j+1}','ng')">✕ 遅れ</div>
+        </div>
+        <input type="hidden" id="m_g${i}kr${j+1}">
+      </div>`).join('')||`<div class="prog-row"><span class="prog-num">KR</span><span style="font-size:12px;color:var(--text-tertiary)">期初設定でKRを入力してください</span></div>`}
+      <div>
+        <label style="margin-bottom:4px">目標${i}　コメント <span class="tip-wrap"><i class="tip-icon">?</i><div class="tooltip">S（状況）→B（行動）→I（結果）→A（次アクション）の順で書くと伝わりやすい。</div></span></label>
+        <textarea id="m_g${i}comment" rows="3" placeholder="S：状況　B：行動　I：結果　A：次アクション の順で書くと伝わりやすいです" oninput="markDirty()"></textarea>
+      </div>
+    </div>`;
+  }
+  document.getElementById('monthlyGoals').innerHTML = html;
+}
+
+function renderQuarterRates() {
+  let html = '';
+  for(let i=1;i<=3;i++){
+    html += `<div style="background:var(--bg);border-radius:var(--radius-md);padding:12px;text-align:center">
+      <div style="font-size:10px;color:var(--text-tertiary);margin-bottom:6px">目標${i}</div>
+      <div style="font-size:22px;font-weight:500;font-family:'DM Sans',sans-serif;color:var(--text-secondary)" id="qrate${i}">--%</div>
+      <input type="hidden" id="q_g${i}rate">
+    </div>`;
+  }
+  document.getElementById('quarterRates').innerHTML = html;
+}
+
+async function gasCall(data) {
+  const params = new URLSearchParams(data);
+  const res = await fetch(GAS_URL + '?' + params.toString());
+  return await res.json();
+}
+
+async function gasPost(data) {
+  const res = await fetch(GAS_URL, {
+    method: 'POST',
+    body: JSON.stringify(data)
+  });
+  return await res.json();
+}
+
+async function loadKisho() {
+  try {
+    const result = await gasCall({action:'getKisho', userId:currentUser});
+    if(result.success && result.data) {
+      const d = result.data;
+      setVal('v1', d['バリュー①']);
+      setVal('v2', d['バリュー②']);
+      setVal('v3', d['バリュー③']);
+      for(let i=1;i<=3;i++){
+        setVal(`g${i}_通期`, d[`目標${i}通期`]);
+        setVal(`g${i}_半期`, d[`目標${i}半期`]);
+        setVal(`g${i}_bg`, d[`目標${i}背景`]);
+        const types = (d[`目標${i}類型`]||'').split(',');
+        document.querySelectorAll(`#types${i} .type-btn`).forEach(btn => {
+          if(types.some(t=>btn.textContent.includes(t.trim()))) btn.classList.add('sel');
+        });
+        const krs = [d[`目標${i}KR1`], d[`目標${i}KR2`], d[`目標${i}KR3`]].filter(Boolean);
+        const list = document.getElementById(`kr${i}`);
+        if(list && krs.length) {
+          const tas = list.querySelectorAll('textarea');
+          krs.forEach((k,j) => { if(tas[j]) tas[j].value = k; });
+        }
+      }
+    }
+  } catch(e) { console.error(e); }
+}
+
+async function saveKisho() {
+  const m = MEMBERS[currentUser];
+  const data = {
+    action:'saveKisho', userId:currentUser, name:m.name, grade:m.grade, term:'前期', dept:'',
+    v1:getVal('v1'), v2:getVal('v2'), v3:getVal('v3')
+  };
+  for(let i=1;i<=3;i++){
+    data[`g${i}_通期`] = getVal(`g${i}_通期`);
+    data[`g${i}_半期`] = getVal(`g${i}_半期`);
+    data[`g${i}_bg`]   = getVal(`g${i}_bg`);
+    data[`g${i}_類型`] = Array.from(document.querySelectorAll(`#types${i} .type-btn.sel`)).map(b=>b.textContent.trim()).join(',');
+    const krs = getKRs(`kr${i}`);
+    data[`g${i}_kr1`] = krs[0]||''; data[`g${i}_kr2`] = krs[1]||''; data[`g${i}_kr3`] = krs[2]||'';
+  }
+  showMsg('kishoMsg', '保存中...', 'info');
+  try {
+    const result = await gasPost(data);
+    if(result.success) showMsg('kishoMsg', '保存しました', 'success');
+    else showMsg('kishoMsg', 'エラー：'+result.error, 'error');
+  } catch(e) { showMsg('kishoMsg', '通信エラーが発生しました', 'error'); }
+}
+
+async function saveFlash() {
+  const s = getVal('flashS'); const b = getVal('flashB');
+  if(!s && !b) { showMsg('flashMsg','SまたはBを入力してください','error'); return; }
+  const m = MEMBERS[currentUser];
+  showMsg('flashMsg','保存中...','info');
+  try {
+    const result = await gasPost({action:'saveFlash', userId:currentUser, name:m.name, value:document.getElementById('flashVal').value, s, b});
+    if(result.success) {
+      setVal('flashS',''); setVal('flashB','');
+      showMsg('flashMsg','保存しました','success');
+      loadFlash();
+    } else showMsg('flashMsg','エラー：'+result.error,'error');
+  } catch(e) { showMsg('flashMsg','通信エラーが発生しました','error'); }
+}
+
+async function loadFlash() {
+  const label = document.getElementById('flashListLabel');
+  const list = document.getElementById('flashList');
+  const ym = currentMonth;
+  const [y,mo] = ym.split('-');
+  if(label) label.textContent = `${parseInt(mo)}月のメモ`;
+  list.innerHTML = '<div class="loading"><div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>読み込み中...</div>';
+  try {
+    const result = await gasCall({action:'getFlash', userId:currentUser, month:ym});
+    if(result.success && result.data.length) {
+      list.innerHTML = result.data.map(m => {
+        const cls = m.value==='v4'?' v4':m.value==='v6'?' v6':'';
+        const tagCls = m.value==='v4'?' v4':m.value==='v6'?' v6':'';
+        const valLabel = m.value==='v2'?'②期待を超える':m.value==='v4'?'④自分を律し、責任を持つ':'⑥ためらわず発信し、対話で前に進む';
+        return `<div class="memo-item${cls}"><div class="memo-meta"><span class="memo-date">${m.date}</span><span class="memo-val-tag${tagCls}">${valLabel}</span></div><div class="memo-text">S：${m.s||'（未入力）'}<br>B：${m.b||'（未入力）'}</div></div>`;
+      }).join('');
+    } else {
+      list.innerHTML = '<div style="padding:20px;text-align:center;font-size:13px;color:var(--text-tertiary)">まだメモがありません。気づいたことを記録してみましょう。</div>';
+    }
+    loadFlashRefs(ym);
+  } catch(e) { list.innerHTML = '<div class="error-msg">読み込みに失敗しました</div>'; }
+}
+
+async function loadFlashRefs(ym) {
+  try {
+    const result = await gasCall({action:'getFlash', userId:currentUser, month:ym});
+    if(!result.success) return;
+    ['v2','v4','v6'].forEach(v => {
+      const el = document.getElementById('flashRef_'+v);
+      if(!el) return;
+      const items = result.data.filter(m=>m.value===v);
+      if(!items.length) { el.style.display='none'; return; }
+      el.style.display='block';
+      el.innerHTML = `<div style="background:var(--bg);border-radius:var(--radius-sm);padding:8px 10px;font-size:11px;color:var(--text-tertiary);cursor:pointer" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">今月のメモ ${items.length}件 ▾</div><div style="display:none">${items.map(m=>`<div style="margin-top:4px;padding:6px 10px;background:var(--surface);border-radius:var(--radius-sm);font-size:11px;color:var(--text-secondary);line-height:1.6">S：${m.s||''}<br>B：${m.b||''}</div>`).join('')}</div>`;
+    });
+  } catch(e) {}
+}
+
+async function loadMonthly(ym) {
+  clearMonthlyForm();
+  try {
+    const result = await gasCall({action:'getMonthly', userId:currentUser, yearMonth:ym});
+    if(result.success && result.data) {
+      const d = result.data;
+      ['v2','v4','v6'].forEach(v => {
+        setVal(`m_${v}s`, d[`バリュー${v==='v2'?'②':'v4'?'④':'⑥'}S`]||d[`バリュー${v}S`]||'');
+        setVal(`m_${v}b`, d[`バリュー${v==='v2'?'②':'v4'?'④':'⑥'}B`]||d[`バリュー${v}B`]||'');
+        setVal(`m_${v}i`, d[`バリュー${v==='v2'?'②':'v4'?'④':'⑥'}I`]||d[`バリュー${v}I`]||'');
+        setVal(`m_${v}a`, d[`バリュー${v==='v2'?'②':'v4'?'④':'⑥'}A`]||d[`バリュー${v}A`]||'');
+        const ev = d[`バリュー${v==='v2'?'②':'v4'?'④':'⑥'}自己評価`]||d[`バリュー${v}自己評価`]||'';
+        if(ev) setABCVal(`m_${v}eval`, ev);
+      });
+      for(let i=1;i<=3;i++){
+        ['kr1','kr2','kr3'].forEach(kr => {
+          const v = d[`目標${i}${kr.toUpperCase()}進捗`]||d[`目標${i}${kr}進捗`]||'';
+          if(v) {
+            const el = document.getElementById(`m_g${i}${kr}`);
+            if(el) {
+              el.value = v;
+              const btn = document.querySelector(`[onclick="selProg(this,'m_g${i}${kr}','${v}')"]`);
+              if(btn) btn.classList.add(v);
+            }
+          }
+        });
+        setVal(`m_g${i}comment`, d[`目標${i}コメント`]||'');
+      }
+      const ts = d['最終更新日時']||'';
+      document.getElementById('monthlyTimestamp').textContent = ts ? `最終更新：${ts}` : '';
+    }
+  } catch(e) { console.error(e); }
+  loadFlashRefs(ym);
+}
+
+async function saveMonthly() {
+  const m = MEMBERS[currentUser];
+  const data = {
+    action:'saveMonthly', userId:currentUser, name:m.name, yearMonth:currentMonth,
+    v2s:getVal('m_v2s'), v2b:getVal('m_v2b'), v2i:getVal('m_v2i'), v2a:getVal('m_v2a'), v2eval:getVal('m_v2eval'),
+    v4s:getVal('m_v4s'), v4b:getVal('m_v4b'), v4i:getVal('m_v4i'), v4a:getVal('m_v4a'), v4eval:getVal('m_v4eval'),
+    v6s:getVal('m_v6s'), v6b:getVal('m_v6b'), v6i:getVal('m_v6i'), v6a:getVal('m_v6a'), v6eval:getVal('m_v6eval'),
+    g1kr1:getVal('m_g1kr1'), g1kr2:getVal('m_g1kr2'), g1kr3:getVal('m_g1kr3'), g1comment:getVal('m_g1comment'),
+    g2kr1:getVal('m_g2kr1'), g2kr2:getVal('m_g2kr2'), g2kr3:getVal('m_g2kr3'), g2comment:getVal('m_g2comment'),
+    g3kr1:getVal('m_g3kr1'), g3kr2:getVal('m_g3kr2'), g3kr3:getVal('m_g3kr3'), g3comment:getVal('m_g3comment')
+  };
+  showMsg('monthlyMsg','保存中...','info');
+  try {
+    const result = await gasPost(data);
+    if(result.success) {
+      showMsg('monthlyMsg','保存しました','success');
+      document.getElementById('monthlyTimestamp').textContent = `最終更新：${result.timestamp}`;
+    } else showMsg('monthlyMsg','エラー：'+result.error,'error');
+  } catch(e) { showMsg('monthlyMsg','通信エラーが発生しました','error'); }
+}
+
+async function loadQuarter(q) {
+  try {
+    const result = await gasCall({action:'getQuarter', userId:currentUser, quarter:q});
+    if(result.success && result.data) {
+      const d = result.data;
+      setABCVal('q_v2eval', d['バリュー②四半期評価']||'');
+      setABCVal('q_v4eval', d['バリュー④四半期評価']||'');
+      setABCVal('q_v6eval', d['バリュー⑥四半期評価']||'');
+      setVal('q_comment', d['四半期総合コメント']||'');
+      setVal('q_intent', d['次四半期への意図']||'');
+      for(let i=1;i<=3;i++){
+        const rate = d[`目標${i}達成率`]||'--';
+        const el = document.getElementById(`qrate${i}`);
+        if(el) el.textContent = rate+'%';
+      }
+      const ts = d['最終更新日時']||'';
+      document.getElementById('quarterTimestamp').textContent = ts ? `最終更新：${ts}` : '';
+    }
+  } catch(e) { console.error(e); }
+}
+
+async function saveQuarter() {
+  const m = MEMBERS[currentUser];
+  const data = {
+    action:'saveQuarter', userId:currentUser, name:m.name, quarter:currentQuarter,
+    v2eval:getVal('q_v2eval'), v4eval:getVal('q_v4eval'), v6eval:getVal('q_v6eval'),
+    totalComment:getVal('q_comment'), nextIntent:getVal('q_intent'),
+    g1rate:getVal('q_g1rate'), g2rate:getVal('q_g2rate'), g3rate:getVal('q_g3rate')
+  };
+  showMsg('quarterMsg','保存中...','info');
+  try {
+    const result = await gasPost(data);
+    if(result.success) {
+      showMsg('quarterMsg','保存しました','success');
+      document.getElementById('quarterTimestamp').textContent = `最終更新：${result.timestamp}`;
+    } else showMsg('quarterMsg','エラー：'+result.error,'error');
+  } catch(e) { showMsg('quarterMsg','通信エラーが発生しました','error'); }
+}
+
+async function adminLogin() {
+  const pw = document.getElementById('pwInput').value;
+  document.getElementById('pwMsg').innerHTML = '';
+  try {
+    const result = await gasPost({action:'adminLogin', password:pw});
+    if(result.success) {
+      document.getElementById('pwScreen').style.display = 'none';
+      document.getElementById('dashScreen').style.display = 'block';
+      loadDashboard();
+    } else {
+      document.getElementById('pwMsg').innerHTML = '<div class="error-msg">パスワードが違います</div>';
+    }
+  } catch(e) { document.getElementById('pwMsg').innerHTML = '<div class="error-msg">通信エラーが発生しました</div>'; }
+}
+
+async function loadDashboard() {
+  document.getElementById('dashMetrics').innerHTML = '<div style="grid-column:1/-1" class="loading"><div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>読み込み中...</div>';
+  try {
+    const result = await gasCall({action:'getDashboard', month:currentMonth});
+    if(!result.success) return;
+    const d = result.data;
+    const flashDone = d.members.filter(m=>m.flashCount>0).length;
+    const monthlyDone = d.members.filter(m=>m.monthlyDone).length;
+    const notDone = d.members.filter(m=>!m.flashCount&&!m.monthlyDone).length;
+    document.getElementById('dashMetrics').innerHTML = `
+      <div class="metric-card"><div class="metric-label">メモ記入者</div><div class="metric-value">${flashDone}<span style="font-size:13px;color:var(--text-tertiary)">/${d.members.length}</span></div></div>
+      <div class="metric-card"><div class="metric-label">月次まとめ完了</div><div class="metric-value">${monthlyDone}<span style="font-size:13px;color:var(--text-tertiary)">/${d.members.length}</span></div></div>
+      <div class="metric-card"><div class="metric-label">未記入</div><div class="metric-value" style="color:${notDone>0?'#A32D2D':'var(--accent)'}">${notDone}</div></div>`;
+    document.getElementById('dashMembers').innerHTML = d.members.map(m => {
+      const info = MEMBERS[m.userId];
+      const dot1 = m.flashCount>0?'sdot-ok':'sdot-empty';
+      const dot2 = m.monthlyDone?'sdot-ok':'sdot-empty';
+      const statusText = m.flashCount>0&&m.monthlyDone?'すべて完了':m.flashCount>0?`メモ${m.flashCount}件`:m.monthlyDone?'まとめのみ':'未記入';
+      const textColor = !m.flashCount&&!m.monthlyDone?'color:#A32D2D':'';
+      return `<div class="member-row" onclick="viewMember('${m.userId}')">
+        <div class="member-info">
+          <div class="avatar" style="background:${info?.bg||'#F1EFE8'};color:${info?.color||'#444'}">${m.name[0]}</div>
+          <div><div class="member-name">${m.name}</div><div class="member-grade">等級 ${m.grade}</div></div>
+        </div>
+        <div class="status-area">
+          <div class="sdot ${dot1}"></div>
+          <div class="sdot ${dot2}"></div>
+          <span class="status-text" style="${textColor}">${statusText}${m.monthlyLastDate?'　'+m.monthlyLastDate.substring(0,10):''}</span>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) { document.getElementById('dashMetrics').innerHTML = '<div class="error-msg">読み込みに失敗しました</div>'; }
+}
+
+function viewMember(userId) {
+  currentUser = userId;
+  const m = MEMBERS[userId];
+  document.getElementById('userPill').textContent = m.name + ' ▾';
+  renderGradeInfo(m);
+  renderGoalForms(m);
+  renderMonthTabs();
+  renderQuarterTabs();
+  loadKisho();
+  showTab('monthly');
+}
+
+function selFlashVal(btn, val) {
+  btn.closest('.flash-val-select').querySelectorAll('.flash-val-btn').forEach(b=>b.classList.remove('sel'));
+  btn.classList.add('sel');
+  document.getElementById('flashVal').value = val;
+}
+
+function selABC(btn, hiddenId, val) {
+  btn.closest('.abc-row').querySelectorAll('.abc-btn').forEach(b=>{ b.classList.remove('selA','selB','selC'); });
+  btn.classList.add('sel'+val);
+  document.getElementById(hiddenId).value = val;
+  markDirty();
+}
+
+function setABCVal(hiddenId, val) {
+  if(!val) return;
+  document.getElementById(hiddenId).value = val;
+  const el = document.getElementById(hiddenId);
+  if(!el) return;
+  const row = el.closest ? el.closest('.abc-row') : el.previousElementSibling;
+  if(!row) return;
+  row.querySelectorAll('.abc-btn').forEach(b => {
+    b.classList.remove('selA','selB','selC');
+    if(b.textContent.startsWith(val)) b.classList.add('sel'+val);
+  });
+}
+
+function selProg(btn, hiddenId, val) {
+  btn.closest('.prog-btns').querySelectorAll('.prog-btn').forEach(b=>{ b.classList.remove('ok','warn','ng'); });
+  btn.classList.add(val);
+  document.getElementById(hiddenId).value = val;
+  markDirty();
+}
+
+function toggleType(btn) { btn.classList.toggle('sel'); markDirty(); }
 
 function addKR(listId) {
   const list = document.getElementById(listId);
   const n = list.children.length + 1;
-  if (n > 3) return;
+  if(n > 3) return;
   const row = document.createElement('div');
   row.className = 'kr-row';
-  row.innerHTML = `<span class="kr-num">KR${n}</span><textarea placeholder="KR${n}"></textarea>`;
+  row.innerHTML = `<span class="kr-num">KR${n}</span><textarea placeholder="KR${n}" oninput="markDirty()"></textarea>`;
   list.appendChild(row);
 }
 
-function getKRs(id) {
-  return Array.from(document.querySelectorAll('#' + id + ' textarea'))
-    .map(t => t.value.trim()).filter(Boolean);
+function getKRs(listId) {
+  const list = document.getElementById(listId);
+  if(!list) return [];
+  return Array.from(list.querySelectorAll('textarea')).map(t=>t.value.trim());
 }
 
-function getTypes(id) {
-  return Array.from(document.querySelectorAll('#' + id + ' .type-btn.sel'))
-    .map(b => b.textContent.trim());
-}
+function getVal(id) { const el = document.getElementById(id); return el ? el.value : ''; }
+function setVal(id, val) { const el = document.getElementById(id); if(el && val) el.value = val; }
 
-function buildPrompt() {
-  const gradeMap = {
-    '1': '等級Ⅰ（基礎実行）', '2': '等級Ⅱ（主体性）',
-    '3': '等級Ⅲ（自律・成果創出）', '4': '等級Ⅳ（推進・合意形成）', '5': '等級Ⅴ（事業牽引・変革）'
-  };
-  const grade = gradeMap[document.getElementById('grade').value] || '未選択';
-  const obj1 = document.getElementById('obj1').value.trim();
-  const obj2 = document.getElementById('obj2').value.trim();
-  const obj3 = document.getElementById('obj3').value.trim();
-  if (!obj1) return null;
-
-  let p = `すみよしの人事制度に基づく目標設定の診断をしてください。
-
-被評価者：${document.getElementById('name').value || '未入力'}、${grade}、${document.getElementById('term').value}、${document.getElementById('dept').value || '未入力'}
-
-【制度ルール】
-・5類型：①付加価値創出②個人成長③業務改善④組織貢献⑤挑戦・革新
-・KRは定量化必須、行動でなく結果
-・SMARTの法則（具体的・測定可能・達成可能・関連性・期限）
-・等級別必須類型：Ⅰ→③②、Ⅱ→③②④チーム、Ⅲ→①③仕組化④部門横断②専門性、Ⅳ→①部門④仕組化⑤②リーダー、Ⅴ→①事業⑤④②経営
-・ストレッチ性：能力より少し上、過去の延長でない
-
-【目標①】${obj1}
-類型：${getTypes('t1').join('、') || '未選択'}
-KR：${getKRs('k1').map((k, i) => `KR${i + 1}「${k}」`).join('、') || '未入力'}
-背景：${document.getElementById('bg1').value.trim() || '未入力'}`;
-
-  if (obj2) p += `\n\n【目標②】${obj2}\n類型：${getTypes('t2').join('、') || '未選択'}\nKR：${getKRs('k2').map((k, i) => `KR${i + 1}「${k}」`).join('、') || '未入力'}`;
-  if (obj3) p += `\n\n【目標③】${obj3}\n類型：${getTypes('t3').join('、') || '未選択'}\nKR：${getKRs('k3').map((k, i) => `KR${i + 1}「${k}」`).join('、') || '未入力'}`;
-
-  p += `
-
-以下のJSON形式のみで返答してください（コードブロック不要）：
-{"overall":"通過または要修正または差し戻し","summary":"総合コメント2〜3文","goals":[{"title":"目標の短縮タイトル","smart_score":0から5の整数,"stretch_score":0から5の整数,"type_ok":trueまたはfalse,"kr_ok":trueまたはfalse,"feedbacks":[{"type":"okまたはngまたはwarnまたはinfo","title":"見出し","body":"詳細"}],"rewrite_suggestion":"KR改善案または null"}],"next_action":"次のアクション1〜2文"}`;
-  return p;
-}
-
-async function runDiagnosis() {
-  const obj1 = document.getElementById('obj1').value.trim();
-  if (!obj1) { alert('目標①を入力してください'); return; }
-
-  const apiKey = document.getElementById('apiKey').value.trim();
-  if (!apiKey) { alert('APIキーが見つかりません。最初の画面に戻って入力してください'); return; }
-
-  goPage(3);
-  const result = document.getElementById('diagResult');
-  result.innerHTML = `<div class="loading-state fade-in">
-    <div class="loading-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
-    <p class="loading-text">AIが制度基準と照合しています…</p>
-  </div>`;
-
-  const prompt = buildPrompt();
-
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-allow-browser': 'true'
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1500,
-        messages: [{ role: 'user', content: prompt }]
-      })
+function clearMonthlyForm() {
+  ['v2','v4','v6'].forEach(v => {
+    ['s','b','i','a'].forEach(f => setVal(`m_${v}${f}`,''));
+    setVal(`m_${v}eval`,'');
+    document.querySelectorAll(`[id^="m_v"]`).forEach(el => {
+      if(el.closest && el.closest('.abc-row')) el.classList.remove('selA','selB','selC');
     });
-
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err?.error?.message || `APIエラー (HTTP ${res.status})`);
-    }
-
-    const data = await res.json();
-    const text = data.content?.[0]?.text || '';
-    let parsed;
-    try {
-      parsed = JSON.parse(text.replace(/```json|```/g, '').trim());
-    } catch (e) {
-      throw new Error('レスポンスの解析に失敗しました。もう一度お試しください。');
-    }
-    renderResult(parsed);
-  } catch (e) {
-    result.innerHTML = `<div class="error-card fade-in">
-      <div class="error-title">エラーが発生しました</div>
-      <div class="error-body">${e.message}<br><br>APIキーが正しいか確認してください。</div>
-    </div>
-    <div class="btn-group">
-      <button class="btn-primary" onclick="goPage(0)">← APIキーを確認する</button>
-      <button class="btn-primary" onclick="goPage(2)">← 目標を修正する</button>
-    </div>`;
-  }
-}
-
-function scoreColor(pct) {
-  return pct >= 80 ? '#2C5F3F' : pct >= 60 ? '#8B5E1A' : '#8B1A1A';
-}
-
-function renderResult(d) {
-  const oc = d.overall === '通過' ? 'badge-pass' : d.overall === '要修正' ? 'badge-warn' : 'badge-fail';
-  const oi = d.overall === '通過' ? '✓ ' : d.overall === '要修正' ? '△ ' : '✗ ';
-
-  let html = `<div class="fade-in">
-  <p class="section-title">ステップ 3 / 3　診断結果</p>
-  <div class="card">
-    <div class="overall-badge ${oc}">${oi}${d.overall}</div>
-    <p class="summary-text">${d.summary}</p>`;
-
-  (d.goals || []).forEach((g, i) => {
-    const sp = Math.round((g.smart_score / 5) * 100);
-    const tp = Math.round((g.stretch_score / 5) * 100);
-    const sc = scoreColor(sp);
-    const tc = scoreColor(tp);
-
-    html += `<div class="goal-section">
-      <p class="goal-title">目標${i + 1}：${g.title || ''}</p>
-      <div class="score-grid">
-        <div class="score-card">
-          <div class="score-label">SMARTスコア</div>
-          <div class="score-value" style="color:${sc}">${g.smart_score}<span style="font-size:13px;color:var(--text-tertiary)">/5</span></div>
-          <div class="score-bar"><div class="score-fill" style="width:${sp}%;background:${sc}"></div></div>
-        </div>
-        <div class="score-card">
-          <div class="score-label">ストレッチ性</div>
-          <div class="score-value" style="color:${tc}">${g.stretch_score}<span style="font-size:13px;color:var(--text-tertiary)">/5</span></div>
-          <div class="score-bar"><div class="score-fill" style="width:${tp}%;background:${tc}"></div></div>
-        </div>
-      </div>
-      <div class="tags">
-        <span class="tag ${g.type_ok ? 'tag-ok' : 'tag-ng'}">${g.type_ok ? '✓ 類型OK' : '△ 類型要確認'}</span>
-        <span class="tag ${g.kr_ok ? 'tag-ok' : 'tag-ng'}">${g.kr_ok ? '✓ KR OK' : '△ KR要修正'}</span>
-      </div>`;
-
-    (g.feedbacks || []).forEach(fb => {
-      html += `<div class="fb-item fb-${fb.type}"><div class="fb-title">${fb.title}</div><div class="fb-body">${fb.body}</div></div>`;
-    });
-
-    if (g.rewrite_suggestion) {
-      html += `<div class="fb-item fb-info"><div class="fb-title">改善提案</div><div class="fb-body">${g.rewrite_suggestion}</div></div>`;
-    }
-    html += '</div>';
   });
-
-  if (d.next_action) {
-    html += `<div class="next-action">
-      <div class="next-action-label">次のアクション</div>
-      <div class="next-action-text">${d.next_action}</div>
-    </div>`;
+  for(let i=1;i<=3;i++){
+    ['kr1','kr2','kr3'].forEach(kr => setVal(`m_g${i}${kr}`,''));
+    setVal(`m_g${i}comment`,'');
   }
-
-  html += `<div class="btn-group">
-    <button class="btn-primary" onclick="goPage(2)">← 目標を修正する</button>
-    <button class="btn-accent" onclick="goPage(1)">新しく診断する</button>
-  </div></div>`;
-
-  document.getElementById('diagResult').innerHTML = html;
+  document.getElementById('monthlyTimestamp').textContent = '';
 }
+
+function markDirty() {
+  isDirty = true;
+  document.getElementById('saveStatus').style.display = 'flex';
+  document.getElementById('saveText').textContent = '未保存';
+}
+
+function showMsg(id, text, type) {
+  const el = document.getElementById(id);
+  if(!el) return;
+  const cls = type==='success'?'success-msg':type==='error'?'error-msg':'';
+  el.innerHTML = cls ? `<div class="${cls}">${text}</div>` : `<div style="font-size:12px;color:var(--text-tertiary)">${text}</div>`;
+  if(type==='success') setTimeout(()=>el.innerHTML='', 3000);
+}
+
+init();
 </script>
 </body>
 </html>
