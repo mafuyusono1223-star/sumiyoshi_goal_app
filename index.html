@@ -712,26 +712,25 @@ async function loadKisho() {
     const result = await gasCall({action:'getKisho', userId:currentUser});
     if(result.success && result.data) {
       const d = result.data;
-      // バリュー①②③はスプレッドシートのヘッダー名と完全一致
+      const numMap = {1:'①', 2:'②', 3:'③'};
       setVal('v1', d['バリュー①'] || '');
       setVal('v2', d['バリュー②'] || '');
       setVal('v3', d['バリュー③'] || '');
       for(let i=1;i<=3;i++){
-        setVal(`g${i}_通期`, d[`目標${i}通期`] || '');
-        setVal(`g${i}_半期`, d[`目標${i}半期`] || '');
-        setVal(`g${i}_bg`,   d[`目標${i}背景`] || '');
+        const n = numMap[i];
+        setVal(`g${i}_通期`, d[`目標${n}通期`] || '');
+        setVal(`g${i}_半期`, d[`目標${n}半期`] || '');
+        setVal(`g${i}_bg`,   d[`目標${n}背景`] || '');
         // 類型ボタンの復元
-        const typeStr = d[`目標${i}類型`] || '';
+        const typeStr = d[`目標${n}類型`] || '';
         if(typeStr) {
           document.querySelectorAll(`#types${i} .type-btn`).forEach(btn => {
-            const btnText = btn.textContent.trim();
-            // ①②③④⑤の番号で比較
-            const num = btnText.charAt(0);
-            if(typeStr.includes(num)) btn.classList.add('sel');
+            const btnNum = btn.textContent.trim().charAt(0);
+            if(typeStr.includes(btnNum)) btn.classList.add('sel');
           });
         }
         // KR復元
-        const krKeys = [`目標${i}KR1`, `目標${i}KR2`, `目標${i}KR3`];
+        const krKeys = [`目標${n}KR1`, `目標${n}KR2`, `目標${n}KR3`];
         const list = document.getElementById(`kr${i}`);
         if(list) {
           const tas = list.querySelectorAll('textarea');
@@ -832,12 +831,14 @@ async function loadMonthly(ym) {
     const result = await gasCall({action:'getMonthly', userId:currentUser, yearMonth:ym});
     if(result.success && result.data) {
       const d = result.data;
+      const vMap = {'v2':'②','v4':'④','v6':'⑥'};
       ['v2','v4','v6'].forEach(v => {
-        setVal(`m_${v}s`, d[`バリュー${v==='v2'?'②':'v4'?'④':'⑥'}S`]||d[`バリュー${v}S`]||'');
-        setVal(`m_${v}b`, d[`バリュー${v==='v2'?'②':'v4'?'④':'⑥'}B`]||d[`バリュー${v}B`]||'');
-        setVal(`m_${v}i`, d[`バリュー${v==='v2'?'②':'v4'?'④':'⑥'}I`]||d[`バリュー${v}I`]||'');
-        setVal(`m_${v}a`, d[`バリュー${v==='v2'?'②':'v4'?'④':'⑥'}A`]||d[`バリュー${v}A`]||'');
-        const ev = d[`バリュー${v==='v2'?'②':'v4'?'④':'⑥'}自己評価`]||d[`バリュー${v}自己評価`]||'';
+        const num = vMap[v];
+        setVal(`m_${v}s`, d[`バリュー${num}S`]||'');
+        setVal(`m_${v}b`, d[`バリュー${num}B`]||'');
+        setVal(`m_${v}i`, d[`バリュー${num}I`]||'');
+        setVal(`m_${v}a`, d[`バリュー${num}A`]||'');
+        const ev = d[`バリュー${num}自己評価`]||'';
         if(ev) setABCVal(`m_${v}eval`, ev);
       });
       for(let i=1;i<=3;i++){
