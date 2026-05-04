@@ -712,22 +712,39 @@ async function loadKisho() {
     const result = await gasCall({action:'getKisho', userId:currentUser});
     if(result.success && result.data) {
       const d = result.data;
-      setVal('v1', d['バリュー①']);
-      setVal('v2', d['バリュー②']);
-      setVal('v3', d['バリュー③']);
+      // バリュー①②③はスプレッドシートのヘッダー名と完全一致
+      setVal('v1', d['バリュー①'] || '');
+      setVal('v2', d['バリュー②'] || '');
+      setVal('v3', d['バリュー③'] || '');
       for(let i=1;i<=3;i++){
-        setVal(`g${i}_通期`, d[`目標${i}通期`]);
-        setVal(`g${i}_半期`, d[`目標${i}半期`]);
-        setVal(`g${i}_bg`, d[`目標${i}背景`]);
-        const types = (d[`目標${i}類型`]||'').split(',');
-        document.querySelectorAll(`#types${i} .type-btn`).forEach(btn => {
-          if(types.some(t=>btn.textContent.includes(t.trim()))) btn.classList.add('sel');
-        });
-        const krs = [d[`目標${i}KR1`], d[`目標${i}KR2`], d[`目標${i}KR3`]].filter(Boolean);
+        setVal(`g${i}_通期`, d[`目標${i}通期`] || '');
+        setVal(`g${i}_半期`, d[`目標${i}半期`] || '');
+        setVal(`g${i}_bg`,   d[`目標${i}背景`] || '');
+        // 類型ボタンの復元
+        const typeStr = d[`目標${i}類型`] || '';
+        if(typeStr) {
+          document.querySelectorAll(`#types${i} .type-btn`).forEach(btn => {
+            const btnText = btn.textContent.trim();
+            // ①②③④⑤の番号で比較
+            const num = btnText.charAt(0);
+            if(typeStr.includes(num)) btn.classList.add('sel');
+          });
+        }
+        // KR復元
+        const krKeys = [`目標${i}KR1`, `目標${i}KR2`, `目標${i}KR3`];
         const list = document.getElementById(`kr${i}`);
-        if(list && krs.length) {
+        if(list) {
           const tas = list.querySelectorAll('textarea');
-          krs.forEach((k,j) => { if(tas[j]) tas[j].value = k; });
+          krKeys.forEach((key, j) => {
+            const val = d[key] || '';
+            if(val && tas[j]) {
+              tas[j].value = val;
+            } else if(val && j >= tas.length && j < 3) {
+              addKR(`kr${i}`);
+              const newTas = list.querySelectorAll('textarea');
+              if(newTas[j]) newTas[j].value = val;
+            }
+          });
         }
       }
     }
