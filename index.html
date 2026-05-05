@@ -240,6 +240,7 @@ select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
     <div class="tab" onclick="showTab('monthly')">月次まとめ</div>
     <div class="tab" onclick="showTab('quarter')">四半期</div>
     <div class="tab admin-tab" onclick="showTab('admin')">管理者</div>
+    <div class="tab admin-tab" onclick="showTab('hyoka')">評価シート</div>
   </div>
 </div>
 
@@ -430,10 +431,32 @@ select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
         <textarea id="q_intent" rows="2" placeholder="次の3ヶ月で特に意識することを書いてください" oninput="markDirty()"></textarea>
       </div>
 
-      <p class="section-label">目標管理　四半期達成率</p>
+      <p class="section-label">目標管理　四半期達成率（直接入力）</p>
       <div class="card">
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px" id="quarterRates"></div>
-        <label style="margin-bottom:6px;font-size:11px;color:var(--text-tertiary)">達成率は月次まとめのKR進捗（○=1点・△=0.5点・✕=0点）から自動計算されます</label>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px">
+          <div style="background:var(--bg);border-radius:var(--radius-md);padding:12px">
+            <div style="font-size:10px;color:var(--text-tertiary);margin-bottom:6px">目標①</div>
+            <div style="display:flex;align-items:center;gap:4px">
+              <input type="number" id="q_g1rate" min="0" max="100" step="0.01" placeholder="0.00" style="margin-bottom:0;text-align:right;font-family:DM Sans,sans-serif;font-size:16px;font-weight:500" oninput="markDirty()">
+              <span style="font-size:13px;color:var(--text-secondary);white-space:nowrap">%</span>
+            </div>
+          </div>
+          <div style="background:var(--bg);border-radius:var(--radius-md);padding:12px">
+            <div style="font-size:10px;color:var(--text-tertiary);margin-bottom:6px">目標②</div>
+            <div style="display:flex;align-items:center;gap:4px">
+              <input type="number" id="q_g2rate" min="0" max="100" step="0.01" placeholder="0.00" style="margin-bottom:0;text-align:right;font-family:DM Sans,sans-serif;font-size:16px;font-weight:500" oninput="markDirty()">
+              <span style="font-size:13px;color:var(--text-secondary);white-space:nowrap">%</span>
+            </div>
+          </div>
+          <div style="background:var(--bg);border-radius:var(--radius-md);padding:12px">
+            <div style="font-size:10px;color:var(--text-tertiary);margin-bottom:6px">目標③</div>
+            <div style="display:flex;align-items:center;gap:4px">
+              <input type="number" id="q_g3rate" min="0" max="100" step="0.01" placeholder="0.00" style="margin-bottom:0;text-align:right;font-family:DM Sans,sans-serif;font-size:16px;font-weight:500" oninput="markDirty()">
+              <span style="font-size:13px;color:var(--text-secondary);white-space:nowrap">%</span>
+            </div>
+          </div>
+        </div>
+        <div style="font-size:11px;color:var(--text-tertiary)">小数点第2位まで入力可能（例：83.33）</div>
       </div>
 
       <div class="timestamp-note" id="quarterTimestamp"></div>
@@ -458,6 +481,123 @@ select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
         <p class="section-label">管理者ダッシュボード</p>
         <div class="metric-grid" id="dashMetrics"></div>
         <div class="member-table" id="dashMembers"></div>
+      </div>
+    </div>
+
+    <!-- 評価シート -->
+    <div class="screen" id="tab-hyoka">
+      <div class="pw-screen" id="hyokaPwScreen">
+        <div class="pw-icon">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="4" y="9" width="12" height="10" rx="2" stroke="#4A1A7A" stroke-width="1.5"/><path d="M7 9V7a3 3 0 016 0v2" stroke="#4A1A7A" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </div>
+        <div style="font-size:15px;font-weight:500">評価者専用</div>
+        <div style="font-size:12px;color:var(--text-tertiary);text-align:center">管理者・評価者のみアクセスできます</div>
+        <input type="password" id="hyokaPwInput" placeholder="パスワードを入力" style="max-width:220px;text-align:center;margin-bottom:0">
+        <button class="btn-accent" style="max-width:220px" onclick="hyokaLogin()">ログイン</button>
+        <div id="hyokaPwMsg"></div>
+      </div>
+
+      <div id="hyokaScreen" style="display:none">
+        <div style="display:flex;gap:8px;margin-bottom:16px;align-items:center;flex-wrap:wrap">
+          <select id="hyokaMember" onchange="loadHyoka()" style="flex:1;min-width:120px;margin-bottom:0">
+            <option value="">メンバーを選択</option>
+          </select>
+          <select id="hyokaTerm" onchange="loadHyoka()" style="flex:1;min-width:120px;margin-bottom:0">
+            <option value="前期">前期（1Q+2Q）</option>
+            <option value="後期">後期（3Q+4Q）</option>
+          </select>
+        </div>
+
+        <div id="hyokaContent" style="display:none">
+          <p class="section-label">等級FB</p>
+          <div class="card">
+            <div class="sg-grid">
+              <div class="sg-box">
+                <div class="sg-label" style="color:var(--accent)">Strength（強み）</div>
+                <textarea id="h_strength" rows="4" placeholder="観察した強みを具体的に記入してください" oninput="markDirty()"></textarea>
+              </div>
+              <div class="sg-box">
+                <div class="sg-label" style="color:var(--warn)">Growth（成長課題）</div>
+                <textarea id="h_growth" rows="4" placeholder="成長課題を具体的に記入してください" oninput="markDirty()"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <p class="section-label">バリュー評価　最終</p>
+          <div class="card">
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+              <div style="text-align:center;background:var(--bg);border-radius:var(--radius-md);padding:12px 6px">
+                <div style="font-size:10px;color:var(--text-tertiary);margin-bottom:6px;line-height:1.4">②期待を超える</div>
+                <div class="abc-row" style="flex-direction:column;gap:4px">
+                  <div class="abc-btn" style="font-size:11px" onclick="selABC(this,'h_v2eval','A')">A</div>
+                  <div class="abc-btn" style="font-size:11px" onclick="selABC(this,'h_v2eval','B')">B</div>
+                  <div class="abc-btn" style="font-size:11px" onclick="selABC(this,'h_v2eval','C')">C</div>
+                </div>
+                <input type="hidden" id="h_v2eval">
+              </div>
+              <div style="text-align:center;background:var(--bg);border-radius:var(--radius-md);padding:12px 6px">
+                <div style="font-size:10px;color:var(--text-tertiary);margin-bottom:6px;line-height:1.4">④自分を律す</div>
+                <div class="abc-row" style="flex-direction:column;gap:4px">
+                  <div class="abc-btn" style="font-size:11px" onclick="selABC(this,'h_v4eval','A')">A</div>
+                  <div class="abc-btn" style="font-size:11px" onclick="selABC(this,'h_v4eval','B')">B</div>
+                  <div class="abc-btn" style="font-size:11px" onclick="selABC(this,'h_v4eval','C')">C</div>
+                </div>
+                <input type="hidden" id="h_v4eval">
+              </div>
+              <div style="text-align:center;background:var(--bg);border-radius:var(--radius-md);padding:12px 6px">
+                <div style="font-size:10px;color:var(--text-tertiary);margin-bottom:6px;line-height:1.4">⑥発信・対話</div>
+                <div class="abc-row" style="flex-direction:column;gap:4px">
+                  <div class="abc-btn" style="font-size:11px" onclick="selABC(this,'h_v6eval','A')">A</div>
+                  <div class="abc-btn" style="font-size:11px" onclick="selABC(this,'h_v6eval','B')">B</div>
+                  <div class="abc-btn" style="font-size:11px" onclick="selABC(this,'h_v6eval','C')">C</div>
+                </div>
+                <input type="hidden" id="h_v6eval">
+              </div>
+            </div>
+          </div>
+
+          <p class="section-label">目標管理　達成率（評価者入力）</p>
+          <div class="card">
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px">
+              <div style="background:var(--bg);border-radius:var(--radius-md);padding:12px">
+                <div style="font-size:10px;color:var(--text-tertiary);margin-bottom:6px">目標①</div>
+                <div style="display:flex;align-items:center;gap:4px">
+                  <input type="number" id="h_g1rate" min="0" max="100" step="0.01" placeholder="0.00" style="margin-bottom:0;text-align:right;font-size:15px;font-weight:500" oninput="markDirty()">
+                  <span style="font-size:13px;color:var(--text-secondary)">%</span>
+                </div>
+              </div>
+              <div style="background:var(--bg);border-radius:var(--radius-md);padding:12px">
+                <div style="font-size:10px;color:var(--text-tertiary);margin-bottom:6px">目標②</div>
+                <div style="display:flex;align-items:center;gap:4px">
+                  <input type="number" id="h_g2rate" min="0" max="100" step="0.01" placeholder="0.00" style="margin-bottom:0;text-align:right;font-size:15px;font-weight:500" oninput="markDirty()">
+                  <span style="font-size:13px;color:var(--text-secondary)">%</span>
+                </div>
+              </div>
+              <div style="background:var(--bg);border-radius:var(--radius-md);padding:12px">
+                <div style="font-size:10px;color:var(--text-tertiary);margin-bottom:6px">目標③</div>
+                <div style="display:flex;align-items:center;gap:4px">
+                  <input type="number" id="h_g3rate" min="0" max="100" step="0.01" placeholder="0.00" style="margin-bottom:0;text-align:right;font-size:15px;font-weight:500" oninput="markDirty()">
+                  <span style="font-size:13px;color:var(--text-secondary)">%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <p class="section-label">総合評価</p>
+          <div class="card">
+            <label>前期（後期）FBコメント</label>
+            <textarea id="h_fb_comment" rows="4" placeholder="この半期の総合的なフィードバックを記入してください" oninput="markDirty()"></textarea>
+            <label style="margin-top:4px">後期（翌期）に向けコメント</label>
+            <textarea id="h_next_comment" rows="3" placeholder="次の半期・翌期に向けた期待・方向性を記入してください" oninput="markDirty()"></textarea>
+          </div>
+
+          <p class="section-label">月次1on1メモ（評価者専用）</p>
+          <div id="hyokaMonthlyMemos"></div>
+
+          <div class="timestamp-note" id="hyokaTimestamp"></div>
+          <button class="btn-accent" onclick="saveHyoka()">保存する</button>
+          <div id="hyokaMsg" style="margin-top:10px"></div>
+        </div>
       </div>
     </div>
 
@@ -497,6 +637,134 @@ function getQuarterLabel(ym) {
   const q = Math.ceil(fiscalM / 3);
   const fy = m >= 4 ? y : y - 1;
   return `${fy}年度 ${q}Q`;
+}
+
+
+// ==================
+// 評価シート（評価者専用）
+// ==================
+function initHyokaTab() {
+  if(!document.getElementById('hyokaScreen').style.display || document.getElementById('hyokaScreen').style.display === 'none') return;
+  // メンバーセレクトを初期化
+  const sel = document.getElementById('hyokaMember');
+  if(sel.options.length <= 1) {
+    Object.entries(MEMBERS).forEach(([key, m]) => {
+      const opt = document.createElement('option');
+      opt.value = key; opt.textContent = m.name;
+      sel.appendChild(opt);
+    });
+  }
+}
+
+function hyokaLogin() {
+  const pw = document.getElementById('hyokaPwInput').value;
+  document.getElementById('hyokaPwMsg').innerHTML = '';
+  fetch(GAS_URL, {method:'POST', body:JSON.stringify({action:'adminLogin', password:pw})})
+    .then(r=>r.json()).then(result => {
+      if(result.success) {
+        document.getElementById('hyokaPwScreen').style.display = 'none';
+        document.getElementById('hyokaScreen').style.display = 'block';
+        initHyokaTab();
+      } else {
+        document.getElementById('hyokaPwMsg').innerHTML = '<div class="error-msg">パスワードが違います</div>';
+      }
+    }).catch(() => {
+      document.getElementById('hyokaPwMsg').innerHTML = '<div class="error-msg">通信エラーが発生しました</div>';
+    });
+}
+
+function loadHyoka() {
+  const userId = document.getElementById('hyokaMember').value;
+  const term = document.getElementById('hyokaTerm').value;
+  if(!userId) { document.getElementById('hyokaContent').style.display='none'; return; }
+  document.getElementById('hyokaContent').style.display = 'block';
+  // 月次1on1メモ欄を生成
+  renderHyokaMonthlyMemos(userId, term);
+  // データ読み込み
+  gasCall({action:'getHyoka', userId, term}).then(result => {
+    if(result.success && result.data) {
+      const d = result.data;
+      setVal('h_strength', d['Strength']||'');
+      setVal('h_growth', d['Growth']||'');
+      setABCVal('h_v2eval', d['バリュー②評価']||'');
+      setABCVal('h_v4eval', d['バリュー④評価']||'');
+      setABCVal('h_v6eval', d['バリュー⑥評価']||'');
+      const r1=document.getElementById('h_g1rate'); if(r1) r1.value=d['目標①達成率']||'';
+      const r2=document.getElementById('h_g2rate'); if(r2) r2.value=d['目標②達成率']||'';
+      const r3=document.getElementById('h_g3rate'); if(r3) r3.value=d['目標③達成率']||'';
+      setVal('h_fb_comment', d['前期FBコメント']||'');
+      setVal('h_next_comment', d['翌期に向けコメント']||'');
+      const ts = d['最終更新日時']||'';
+      document.getElementById('hyokaTimestamp').textContent = ts ? `最終更新：${ts}` : '';
+    }
+  }).catch(e => console.error(e));
+  // 月次メモ読み込み
+  loadHyokaMemos(userId, term);
+}
+
+function renderHyokaMonthlyMemos(userId, term) {
+  const months = term==='前期' ? [4,5,6,7,8,9] : [10,11,12,1,2,3];
+  const now = new Date(new Date().toLocaleString('en-US', {timeZone:'Asia/Tokyo'}));
+  const nowM = now.getMonth()+1; const nowY = now.getFullYear();
+  const fy = nowM>=4 ? nowY : nowY-1;
+  let html = '';
+  months.forEach(m => {
+    const y = m>=4 ? fy : fy+1;
+    const ym = y+'-'+String(m).padStart(2,'0');
+    html += `<div class="card" style="margin-bottom:10px">
+      <div style="font-size:12px;font-weight:500;margin-bottom:8px;color:var(--text-secondary)">${m}月　1on1メモ</div>
+      <textarea id="hmemo_${ym}" rows="3" placeholder="${m}月の1on1で感じた印象・気づきを記録してください（評価者専用）" oninput="markDirty()"></textarea>
+    </div>`;
+  });
+  document.getElementById('hyokaMonthlyMemos').innerHTML = html;
+}
+
+async function loadHyokaMemos(userId, term) {
+  try {
+    const result = await gasCall({action:'getHyokaMemos', userId, term});
+    if(result.success && result.data) {
+      result.data.forEach(m => {
+        const el = document.getElementById('hmemo_'+m.yearMonth);
+        if(el) el.value = m.memo||'';
+      });
+    }
+  } catch(e) { console.error(e); }
+}
+
+async function saveHyoka() {
+  const userId = document.getElementById('hyokaMember').value;
+  const term = document.getElementById('hyokaTerm').value;
+  if(!userId) { alert('メンバーを選択してください'); return; }
+  const m = MEMBERS[userId];
+  const now = new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Tokyo'}));
+  const nowM = now.getMonth()+1; const nowY = now.getFullYear();
+  const fy = nowM>=4 ? nowY : nowY-1;
+  const months = term==='前期' ? [4,5,6,7,8,9] : [10,11,12,1,2,3];
+  const memos = {};
+  months.forEach(mo => {
+    const y = mo>=4 ? fy : fy+1;
+    const ym = y+'-'+String(mo).padStart(2,'0');
+    const el = document.getElementById('hmemo_'+ym);
+    memos[ym] = el ? el.value : '';
+  });
+  const data = {
+    action:'saveHyoka', userId, name:m?.name||userId, term,
+    strength:getVal('h_strength'), growth:getVal('h_growth'),
+    v2eval:getVal('h_v2eval'), v4eval:getVal('h_v4eval'), v6eval:getVal('h_v6eval'),
+    g1rate:document.getElementById('h_g1rate')?.value||'',
+    g2rate:document.getElementById('h_g2rate')?.value||'',
+    g3rate:document.getElementById('h_g3rate')?.value||'',
+    fbComment:getVal('h_fb_comment'), nextComment:getVal('h_next_comment'),
+    memos
+  };
+  showMsg('hyokaMsg','保存中...','info');
+  try {
+    const result = await gasPost(data);
+    if(result.success) {
+      showMsg('hyokaMsg','保存しました','success');
+      document.getElementById('hyokaTimestamp').textContent = `最終更新：${result.timestamp}`;
+    } else showMsg('hyokaMsg','エラー：'+result.error,'error');
+  } catch(e) { showMsg('hyokaMsg','通信エラーが発生しました','error'); }
 }
 
 function init() {
@@ -548,6 +816,7 @@ function showTab(name) {
   if(name === 'monthly') loadMonthly(currentMonth);
   if(name === 'quarter') loadQuarter(currentQuarter);
   if(name === 'admin') { document.getElementById('pwScreen').style.display='flex'; document.getElementById('dashScreen').style.display='none'; }
+  if(name === 'hyoka') initHyokaTab();
 }
 
 function renderGradeInfo(m) {
@@ -598,15 +867,20 @@ function renderGoalForms(m) {
 }
 
 function renderMonthTabs() {
-  const d = new Date();
+  const now = new Date(new Date().toLocaleString('en-US', {timeZone: 'Asia/Tokyo'}));
+  const nowM = now.getMonth() + 1;
+  const nowY = now.getFullYear();
+  // 3月決算：今年度の4月〜翌年3月の12ヶ月を表示
+  const fiscalYear = nowM >= 4 ? nowY : nowY - 1;
   let html = '';
-  for(let i=2;i>=0;i--) {
-    const dt = new Date(d.getFullYear(), d.getMonth()-i, 1);
-    const ym = dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0');
-    const label = (dt.getMonth()+1)+'月';
+  const months = [4,5,6,7,8,9,10,11,12,1,2,3];
+  months.forEach(m => {
+    const y = m >= 4 ? fiscalYear : fiscalYear + 1;
+    const ym = y+'-'+String(m).padStart(2,'0');
+    const label = m+'月';
     const active = ym===currentMonth?' active':'';
     html += `<div class="month-tab${active}" onclick="switchMonth('${ym}',this)">${label}</div>`;
-  }
+  });
   document.getElementById('monthTabs').innerHTML = html;
   renderMonthlyGoals(currentMonth);
 }
@@ -622,20 +896,26 @@ function switchMonth(ym, el) {
 }
 
 function renderQuarterTabs() {
-  const quarters = [];
-  const d = new Date();
-  for(let i=0;i<4;i++) {
-    const dt = new Date(d.getFullYear(), d.getMonth()-(i*3), 1);
-    const ym = dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0');
-    const q = getQuarterLabel(ym);
-    if(!quarters.find(x=>x.q===q)) quarters.push({q, ym});
-  }
+  const now = new Date(new Date().toLocaleString('en-US', {timeZone: 'Asia/Tokyo'}));
+  const nowM = now.getMonth() + 1;
+  const nowY = now.getFullYear();
+  const fiscalYear = nowM >= 4 ? nowY : nowY - 1;
+  // 今年度の4Qを表示
+  const qList = [
+    {q: fiscalYear+'年度 1Q', ym: fiscalYear+'-04'},
+    {q: fiscalYear+'年度 2Q', ym: fiscalYear+'-07'},
+    {q: fiscalYear+'年度 3Q', ym: fiscalYear+'-10'},
+    {q: fiscalYear+'年度 4Q', ym: (fiscalYear+1)+'-01'}
+  ];
+  // 現在のQを判定
+  const currentQ = getQuarterLabel(nowY+'-'+String(nowM).padStart(2,'0'));
   let html = '';
-  quarters.forEach((item,i) => {
-    const active = i===0?' active':'';
+  qList.forEach(item => {
+    const active = item.q===currentQ?' active':'';
     html += `<div class="month-tab${active}" onclick="switchQuarter('${item.q}',this)">${item.q}</div>`;
   });
   document.getElementById('quarterTabs').innerHTML = html;
+  currentQuarter = currentQ;
   renderQuarterRates();
 }
 
@@ -673,8 +953,8 @@ function renderMonthlyGoals(ym) {
         <input type="hidden" id="m_g${i}kr${j+1}">
       </div>`).join('')||`<div class="prog-row"><span class="prog-num">KR</span><span style="font-size:12px;color:var(--text-tertiary)">期初設定でKRを入力してください</span></div>`}
       <div>
-        <label style="margin-bottom:4px">目標${i}　コメント <span class="tip-wrap"><i class="tip-icon">?</i><div class="tooltip">S（状況）→B（行動）→I（結果）→A（次アクション）の順で書くと伝わりやすい。</div></span></label>
-        <textarea id="m_g${i}comment" rows="3" placeholder="S：状況　B：行動　I：結果　A：次アクション の順で書くと伝わりやすいです" oninput="markDirty()"></textarea>
+        <label style="margin-bottom:4px">目標${i}　コメント <span class="tip-wrap"><i class="tip-icon">?</i><div class="tooltip">S（状況）：どんな場面・前提があったか<br>B（行動）：どんな行動・工夫をしたか<br>I（影響・結果）：何が進んだか・どんな変化があったか<br>A（次アクション）：次の1ヶ月で何をするか<br><br>この順で書くと伝わりやすいです。</div></span></label>
+        <textarea id="m_g${i}comment" rows="3" placeholder="この目標に対する今月の振り返りを書いてください" oninput="markDirty()"></textarea>
       </div>
     </div>`;
   }
@@ -682,15 +962,7 @@ function renderMonthlyGoals(ym) {
 }
 
 function renderQuarterRates() {
-  let html = '';
-  for(let i=1;i<=3;i++){
-    html += `<div style="background:var(--bg);border-radius:var(--radius-md);padding:12px;text-align:center">
-      <div style="font-size:10px;color:var(--text-tertiary);margin-bottom:6px">目標${i}</div>
-      <div style="font-size:22px;font-weight:500;font-family:'DM Sans',sans-serif;color:var(--text-secondary)" id="qrate${i}">--%</div>
-      <input type="hidden" id="q_g${i}rate">
-    </div>`;
-  }
-  document.getElementById('quarterRates').innerHTML = html;
+  // 達成率は直接入力欄（HTML固定）のため、ここでは何もしない
 }
 
 async function gasCall(data) {
@@ -884,6 +1156,10 @@ async function saveMonthly() {
 }
 
 async function loadQuarter(q) {
+  // Clear fields first
+  ['q_g1rate','q_g2rate','q_g3rate'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  ['q_v2eval','q_v4eval','q_v6eval'].forEach(id => setABCVal(id,''));
+  setVal('q_comment',''); setVal('q_intent','');
   try {
     const result = await gasCall({action:'getQuarter', userId:currentUser, quarter:q});
     if(result.success && result.data) {
@@ -893,10 +1169,11 @@ async function loadQuarter(q) {
       setABCVal('q_v6eval', d['バリュー⑥四半期評価']||'');
       setVal('q_comment', d['四半期総合コメント']||'');
       setVal('q_intent', d['次四半期への意図']||'');
+      // 直接入力の達成率を復元
       for(let i=1;i<=3;i++){
-        const rate = d[`目標${i}達成率`]||'--';
-        const el = document.getElementById(`qrate${i}`);
-        if(el) el.textContent = rate+'%';
+        const rate = d[`目標${i}達成率`]||'';
+        const el = document.getElementById(`q_g${i}rate`);
+        if(el && rate) el.value = rate;
       }
       const ts = d['最終更新日時']||'';
       document.getElementById('quarterTimestamp').textContent = ts ? `最終更新：${ts}` : '';
@@ -906,11 +1183,14 @@ async function loadQuarter(q) {
 
 async function saveQuarter() {
   const m = MEMBERS[currentUser];
+  const g1rate = document.getElementById('q_g1rate')?.value||'';
+  const g2rate = document.getElementById('q_g2rate')?.value||'';
+  const g3rate = document.getElementById('q_g3rate')?.value||'';
   const data = {
     action:'saveQuarter', userId:currentUser, name:m.name, quarter:currentQuarter,
     v2eval:getVal('q_v2eval'), v4eval:getVal('q_v4eval'), v6eval:getVal('q_v6eval'),
     totalComment:getVal('q_comment'), nextIntent:getVal('q_intent'),
-    g1rate:getVal('q_g1rate'), g2rate:getVal('q_g2rate'), g3rate:getVal('q_g3rate')
+    g1rate, g2rate, g3rate
   };
   showMsg('quarterMsg','保存中...','info');
   try {
