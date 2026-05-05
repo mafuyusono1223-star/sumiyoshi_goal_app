@@ -205,6 +205,58 @@ select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
 .pw-screen { padding: 50px 20px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
 .pw-icon { width: 44px; height: 44px; background: var(--purple-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
 
+.confirm-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 500;
+  align-items: center;
+  justify-content: center;
+}
+.confirm-overlay.show { display: flex; }
+.confirm-box {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  padding: 40px 32px;
+  max-width: 360px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+}
+.confirm-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 500;
+  margin: 0 auto 16px;
+}
+.confirm-name {
+  font-size: 22px;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+.confirm-grade {
+  font-size: 13px;
+  color: var(--text-tertiary);
+  margin-bottom: 24px;
+}
+.confirm-question {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 24px;
+  line-height: 1.6;
+}
+.confirm-btns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
 @media (max-width: 600px) {
   .type-grid { grid-template-columns: repeat(3, 1fr); }
   .sbia-grid { grid-template-columns: 1fr; }
@@ -241,6 +293,20 @@ select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
     <div class="tab" onclick="showTab('quarter')">四半期</div>
     <div class="tab admin-tab" onclick="showTab('admin')">管理者</div>
     <div class="tab admin-tab" onclick="showTab('hyoka')">評価シート</div>
+  </div>
+</div>
+
+<!-- CONFIRM OVERLAY -->
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <div class="confirm-avatar" id="confirmAvatar"></div>
+    <div class="confirm-name" id="confirmName"></div>
+    <div class="confirm-grade" id="confirmGrade"></div>
+    <div class="confirm-question">あなたのシートを開きます。<br>間違いないですか？</div>
+    <div class="confirm-btns">
+      <button class="btn-outline" onclick="cancelConfirm()">戻る</button>
+      <button class="btn-accent" onclick="proceedConfirm()">はい、続ける</button>
+    </div>
   </div>
 </div>
 
@@ -396,7 +462,7 @@ select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
       <p class="section-label">バリュー評価　四半期まとめ</p>
       <div class="card">
         <div class="card-title">四半期バリュー評価</div>
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px">
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
           <div style="text-align:center;background:var(--bg);border-radius:var(--radius-md);padding:12px 6px">
             <div style="font-size:10px;color:var(--text-tertiary);margin-bottom:6px;line-height:1.4">②期待を超える</div>
             <div class="abc-row" style="flex-direction:column;gap:4px">
@@ -425,10 +491,6 @@ select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
             <input type="hidden" id="q_v6eval">
           </div>
         </div>
-        <label>四半期総合コメント</label>
-        <textarea id="q_comment" rows="3" placeholder="3ヶ月を振り返り、成長と課題を書いてください" oninput="markDirty()"></textarea>
-        <label>次の四半期への意図</label>
-        <textarea id="q_intent" rows="2" placeholder="次の3ヶ月で特に意識することを書いてください" oninput="markDirty()"></textarea>
       </div>
 
       <p class="section-label">目標管理　四半期達成率（直接入力）</p>
@@ -457,6 +519,14 @@ select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
           </div>
         </div>
         <div style="font-size:11px;color:var(--text-tertiary)">小数点第2位まで入力可能（例：83.33）</div>
+      </div>
+
+      <p class="section-label">総合レビュー</p>
+      <div class="card">
+        <label>四半期総合コメント</label>
+        <textarea id="q_comment" rows="3" placeholder="バリュー評価・目標管理を踏まえ、この四半期の総合的な振り返りを書いてください" oninput="markDirty()"></textarea>
+        <label style="margin-top:4px">次の四半期への意図</label>
+        <textarea id="q_intent" rows="2" placeholder="次の3ヶ月で特に意識することを書いてください" oninput="markDirty()"></textarea>
       </div>
 
       <div class="timestamp-note" id="quarterTimestamp"></div>
@@ -767,13 +837,37 @@ async function saveHyoka() {
   } catch(e) { showMsg('hyokaMsg','通信エラーが発生しました','error'); }
 }
 
+let pendingUserId = null;
+
+function confirmSelect(key) {
+  const m = MEMBERS[key];
+  pendingUserId = key;
+  document.getElementById('confirmAvatar').textContent = m.name[0];
+  document.getElementById('confirmAvatar').style.background = m.bg;
+  document.getElementById('confirmAvatar').style.color = m.color;
+  document.getElementById('confirmName').textContent = m.name + ' さん';
+  document.getElementById('confirmGrade').textContent = '等級 ' + m.grade + '　' + m.gradeDesc.substring(0, 20) + '…';
+  document.getElementById('confirmOverlay').classList.add('show');
+}
+
+function cancelConfirm() {
+  pendingUserId = null;
+  document.getElementById('confirmOverlay').classList.remove('show');
+}
+
+function proceedConfirm() {
+  document.getElementById('confirmOverlay').classList.remove('show');
+  if(pendingUserId) selectUser(pendingUserId);
+  pendingUserId = null;
+}
+
 function init() {
   const grid = document.getElementById('memberGrid');
   Object.entries(MEMBERS).forEach(([key, m]) => {
     const card = document.createElement('div');
     card.className = 'member-card';
     card.innerHTML = `<div class="member-avatar-lg" style="background:${m.bg};color:${m.color}">${m.name[0]}</div><div class="member-card-name">${m.name}</div><div class="member-card-grade">等級 ${m.grade}</div>`;
-    card.onclick = () => selectUser(key);
+    card.onclick = () => confirmSelect(key);
     grid.appendChild(card);
   });
   currentMonth = getYearMonth();
