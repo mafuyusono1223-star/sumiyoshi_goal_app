@@ -367,6 +367,7 @@ select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
         <button class="btn-accent" onclick="saveFlash()">保存する</button>
         <div id="flashMsg" style="margin-top:8px"></div>
       </div>
+      <div class="month-tabs" id="flashMonthTabs"></div>
       <p class="section-label" id="flashListLabel">今月のメモ</p>
       <div id="flashList"><div class="loading"><div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>読み込み中...</div></div>
     </div>
@@ -891,6 +892,7 @@ function selectUser(key) {
     renderMonthTabs();
     loadMonthly(currentMonth);
   });
+  renderFlashMonthTabs();
 }
 
 function changeUser() {
@@ -908,7 +910,7 @@ function showTab(name) {
   });
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('tab-' + name).classList.add('active');
-  if(name === 'flash') loadFlash();
+  if(name === 'flash') { renderFlashMonthTabs(); loadFlash(); }
   if(name === 'monthly') {
     renderMonthlyGoals(currentMonth);
     loadMonthly(currentMonth);
@@ -992,6 +994,31 @@ function switchMonth(ym, el) {
   loadMonthly(ym);
   loadFlashRefs(ym);
   renderMonthlyGoals(ym);
+}
+
+function renderFlashMonthTabs() {
+  const now = new Date(new Date().toLocaleString('en-US', {timeZone: 'Asia/Tokyo'}));
+  const nowM = now.getMonth() + 1;
+  const nowY = now.getFullYear();
+  const fiscalYear = nowM >= 4 ? nowY : nowY - 1;
+  let html = '';
+  const months = [4,5,6,7,8,9,10,11,12,1,2,3];
+  months.forEach(m => {
+    const y = m >= 4 ? fiscalYear : fiscalYear + 1;
+    const ym = y+'-'+String(m).padStart(2,'0');
+    const label = m+'月';
+    const active = ym===currentMonth?' active':'';
+    html += `<div class="month-tab${active}" onclick="switchFlashMonth('${ym}',this)">${label}</div>`;
+  });
+  const tabs = document.getElementById('flashMonthTabs');
+  if(tabs) tabs.innerHTML = html;
+}
+
+function switchFlashMonth(ym, el) {
+  currentMonth = ym;
+  document.querySelectorAll('#flashMonthTabs .month-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  loadFlash();
 }
 
 function renderQuarterTabs() {
