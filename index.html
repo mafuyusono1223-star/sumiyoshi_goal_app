@@ -1241,14 +1241,27 @@ async function loadMonthly(ym) {
       });
       for(let i=1;i<=3;i++){
         ['kr1','kr2','kr3'].forEach(kr => {
-          const v = d[`目標${i}${kr.toUpperCase()}進捗`]||d[`目標${i}${kr}進捗`]||'';
+          const key = `目標${i}${kr.toUpperCase()}進捗`;
+          const v = d[key]||'';
           if(v) {
             const el = document.getElementById(`m_g${i}${kr}`);
-            if(el) {
-              el.value = v;
-              const btn = document.querySelector(`[onclick="selProg(this,'m_g${i}${kr}','${v}')"]`);
-              if(btn) btn.classList.add(v);
-            }
+            if(el) el.value = v;
+            // ボタンの状態を復元
+            const btns = document.querySelectorAll(`#tab-monthly .prog-btns`);
+            btns.forEach(row => {
+              const hiddenId = `m_g${i}${kr}`;
+              const okBtn = row.querySelector(`[onclick*="${hiddenId},'ok'"]`);
+              const warnBtn = row.querySelector(`[onclick*="${hiddenId},'warn'"]`);
+              const ngBtn = row.querySelector(`[onclick*="${hiddenId},'ng'"]`);
+              if(okBtn && warnBtn && ngBtn) {
+                okBtn.classList.remove('ok','warn','ng');
+                warnBtn.classList.remove('ok','warn','ng');
+                ngBtn.classList.remove('ok','warn','ng');
+                if(v==='ok') okBtn.classList.add('ok');
+                else if(v==='warn') warnBtn.classList.add('warn');
+                else if(v==='ng') ngBtn.classList.add('ng');
+              }
+            });
           }
         });
         setVal(`m_g${i}comment`, d[`目標${i}コメント`]||'');
@@ -1284,7 +1297,11 @@ async function saveMonthly() {
 async function loadQuarter(q) {
   // Clear fields first
   ['q_g1rate','q_g2rate','q_g3rate'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
-  ['q_v2eval','q_v4eval','q_v6eval'].forEach(id => setABCVal(id,''));
+  // ABC評価をクリア
+  ['q_v2eval','q_v4eval','q_v6eval'].forEach(id => {
+    const el=document.getElementById(id); if(el) el.value='';
+    document.querySelectorAll(`[onclick*="${id}"]`).forEach(b=>b.classList.remove('selA','selB','selC'));
+  });
   setVal('q_comment',''); setVal('q_intent','');
   try {
     const result = await gasCall({action:'getQuarter', userId:currentUser, quarter:q});
@@ -1404,14 +1421,26 @@ function selABC(btn, hiddenId, val) {
 
 function setABCVal(hiddenId, val) {
   if(!val) return;
-  document.getElementById(hiddenId).value = val;
   const el = document.getElementById(hiddenId);
   if(!el) return;
-  const row = el.closest ? el.closest('.abc-row') : el.previousElementSibling;
+  el.value = val;
+  // input[type=hidden]の前後のabc-rowを探す
+  let row = null;
+  if(el.previousElementSibling && el.previousElementSibling.classList.contains('abc-row')) {
+    row = el.previousElementSibling;
+  } else {
+    // 親要素からabc-rowを探す
+    let parent = el.parentElement;
+    while(parent && !row) {
+      const found = parent.querySelector('.abc-row');
+      if(found) row = found;
+      parent = parent.parentElement;
+    }
+  }
   if(!row) return;
   row.querySelectorAll('.abc-btn').forEach(b => {
     b.classList.remove('selA','selB','selC');
-    if(b.textContent.startsWith(val)) b.classList.add('sel'+val);
+    if(b.textContent.trim().startsWith(val)) b.classList.add('sel'+val);
   });
 }
 
@@ -1446,13 +1475,22 @@ function setVal(id, val) { const el = document.getElementById(id); if(el && val)
 function clearMonthlyForm() {
   ['v2','v4','v6'].forEach(v => {
     ['s','b','i','a'].forEach(f => setVal(`m_${v}${f}`,''));
-    setVal(`m_${v}eval`,'');
-    document.querySelectorAll(`[id^="m_v"]`).forEach(el => {
-      if(el.closest && el.closest('.abc-row')) el.classList.remove('selA','selB','selC');
+    const evalEl = document.getElementById(`m_${v}eval`);
+    if(evalEl) evalEl.value = '';
+    // ABC評価ボタンのクリア
+    document.querySelectorAll(`#tab-monthly .abc-btn`).forEach(b => {
+      b.classList.remove('selA','selB','selC');
     });
   });
   for(let i=1;i<=3;i++){
-    ['kr1','kr2','kr3'].forEach(kr => setVal(`m_g${i}${kr}`,''));
+    ['kr1','kr2','kr3'].forEach(kr => {
+      const el = document.getElementById(`m_g${i}${kr}`);
+      if(el) el.value = '';
+      // 進捗ボタンのクリア
+      document.querySelectorAll(`#tab-monthly .prog-btn`).forEach(b => {
+        b.classList.remove('ok','warn','ng');
+      });
+    });
     setVal(`m_g${i}comment`,'');
   }
   document.getElementById('monthlyTimestamp').textContent = '';
