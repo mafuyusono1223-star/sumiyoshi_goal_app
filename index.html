@@ -1191,7 +1191,9 @@ async function loadFlash() {
   const ym = currentMonth;
   const [y,mo] = ym.split('-');
   if(label) label.textContent = `${parseInt(mo)}月のメモ`;
+  if(!list) return;
   list.innerHTML = '<div class="loading"><div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>読み込み中...</div>';
+  if(!currentUser) return;
   try {
     const result = await gasCall({action:'getFlash', userId:currentUser, month:ym});
     if(result.success && result.data.length) {
@@ -1205,7 +1207,7 @@ async function loadFlash() {
       list.innerHTML = '<div style="padding:20px;text-align:center;font-size:13px;color:var(--text-tertiary)">まだメモがありません。気づいたことを記録してみましょう。</div>';
     }
     loadFlashRefs(ym);
-  } catch(e) { list.innerHTML = '<div class="error-msg">読み込みに失敗しました</div>'; }
+  } catch(e) { console.error('loadFlash error:', e); list.innerHTML = '<div class="error-msg">読み込みに失敗しました：'+e.message+'</div>'; }
 }
 
 async function loadFlashRefs(ym) {
@@ -1239,32 +1241,28 @@ async function loadMonthly(ym) {
         const ev = d[`バリュー${num}自己評価`]||'';
         if(ev) setABCVal(`m_${v}eval`, ev);
       });
+      const numMap = {1:'①', 2:'②', 3:'③'};
       for(let i=1;i<=3;i++){
-        ['kr1','kr2','kr3'].forEach(kr => {
-          const key = `目標${i}${kr.toUpperCase()}進捗`;
+        const n = numMap[i];
+        ['kr1','kr2','kr3'].forEach((kr, krIdx) => {
+          const key = `目標${n}KR${krIdx+1}進捗`;
           const v = d[key]||'';
           if(v) {
             const el = document.getElementById(`m_g${i}${kr}`);
             if(el) el.value = v;
-            // ボタンの状態を復元
-            const btns = document.querySelectorAll(`#tab-monthly .prog-btns`);
-            btns.forEach(row => {
-              const hiddenId = `m_g${i}${kr}`;
-              const okBtn = row.querySelector(`[onclick*="${hiddenId},'ok'"]`);
-              const warnBtn = row.querySelector(`[onclick*="${hiddenId},'warn'"]`);
-              const ngBtn = row.querySelector(`[onclick*="${hiddenId},'ng'"]`);
-              if(okBtn && warnBtn && ngBtn) {
-                okBtn.classList.remove('ok','warn','ng');
-                warnBtn.classList.remove('ok','warn','ng');
-                ngBtn.classList.remove('ok','warn','ng');
-                if(v==='ok') okBtn.classList.add('ok');
-                else if(v==='warn') warnBtn.classList.add('warn');
-                else if(v==='ng') ngBtn.classList.add('ng');
+            // ボタンの状態を直接復元
+            const targetId = `m_g${i}${kr}`;
+            const allProgBtns = document.querySelectorAll(`[onclick*="${targetId}"]`);
+            allProgBtns.forEach(btn => {
+              btn.classList.remove('ok','warn','ng');
+              const onclickAttr = btn.getAttribute('onclick');
+              if(onclickAttr && onclickAttr.includes(`'${v}'`)) {
+                btn.classList.add(v);
               }
             });
           }
         });
-        setVal(`m_g${i}comment`, d[`目標${i}コメント`]||'');
+        setVal(`m_g${i}comment`, d[`目標${n}コメント`]||'');
       }
       const ts = d['最終更新日時']||'';
       document.getElementById('monthlyTimestamp').textContent = ts ? `最終更新：${ts}` : '';
@@ -1312,9 +1310,10 @@ async function loadQuarter(q) {
       setABCVal('q_v6eval', d['バリュー⑥四半期評価']||'');
       setVal('q_comment', d['四半期総合コメント']||'');
       setVal('q_intent', d['次四半期への意図']||'');
-      // 直接入力の達成率を復元
+      // 直接入力の達成率を復元（丸数字でキー参照）
+      const qNumMap = {1:'①', 2:'②', 3:'③'};
       for(let i=1;i<=3;i++){
-        const rate = d[`目標${i}達成率`]||'';
+        const rate = d[`目標${qNumMap[i]}達成率`]||'';
         const el = document.getElementById(`q_g${i}rate`);
         if(el && rate) el.value = rate;
       }
@@ -1424,24 +1423,28 @@ function setABCVal(hiddenId, val) {
   const el = document.getElementById(hiddenId);
   if(!el) return;
   el.value = val;
-  // input[type=hidden]の前後のabc-rowを探す
-  let row = null;
-  if(el.previousElementSibling && el.previousElementSibling.classList.contains('abc-row')) {
-    row = el.previousElementSibling;
-  } else {
-    // 親要素からabc-rowを探す
-    let parent = el.parentElement;
-    while(parent && !row) {
-      const found = parent.querySelector('.abc-row');
-      if(found) row = found;
-      parent = parent.parentElement;
-    }
+  // onclick属性でhiddenIdを含むabc-btnを検索して状態を復元
+  const allABCBtns = document.querySelectorAll(`.abc-btn[onclick*="${hiddenId}"]`);
+  if(allABCBtns.length > 0) {
+    allABCBtns.forEach(b => {
+      b.classList.remove('selA','selB','selC');
+      const onclick = b.getAttribute('onclick')||'';
+      if(onclick.includes(`,'${val}'`)) b.classList.add('sel'+val);
+    });
+    return;
   }
-  if(!row) return;
-  row.querySelectorAll('.abc-btn').forEach(b => {
-    b.classList.remove('selA','selB','selC');
-    if(b.textContent.trim().startsWith(val)) b.classList.add('sel'+val);
-  });
+  // フォールバック：前の兄弟要素からabc-rowを探す
+  let sibling = el.previousElementSibling;
+  while(sibling) {
+    if(sibling.classList.contains('abc-row')) {
+      sibling.querySelectorAll('.abc-btn').forEach(b => {
+        b.classList.remove('selA','selB','selC');
+        if(b.textContent.trim().startsWith(val)) b.classList.add('sel'+val);
+      });
+      return;
+    }
+    sibling = sibling.previousElementSibling;
+  }
 }
 
 function selProg(btn, hiddenId, val) {
