@@ -1092,8 +1092,11 @@ function renderQuarterRates() {
 }
 
 async function gasCall(data) {
-  const params = new URLSearchParams(data);
-  const res = await fetch(GAS_URL + '?' + params.toString());
+  // GETからPOSTに変更（GASキャッシュ問題の根本解決）
+  const res = await fetch(GAS_URL, {
+    method: 'POST',
+    body: JSON.stringify(data)
+  });
   return await res.json();
 }
 
