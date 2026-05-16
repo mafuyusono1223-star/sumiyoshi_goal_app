@@ -266,6 +266,62 @@ select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
   .sg-grid { grid-template-columns: 1fr; }
   .flash-val-select { grid-template-columns: 1fr; }
 }
+
+/* ===== 印刷用スタイル ===== */
+.print-btn {
+  background: var(--surface);
+  border: 1px solid var(--border-mid);
+  border-radius: var(--radius-sm);
+  padding: 6px 12px;
+  font-size: 12px;
+  font-family: 'Noto Sans JP', sans-serif;
+  cursor: pointer;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.print-btn:hover { background: var(--bg); }
+.print-btn svg { width: 13px; height: 13px; }
+
+@media print {
+  .header, .tabs, .print-btn, .btn-accent, .btn-outline,
+  .add-kr-btn, .tip-wrap, .month-tabs, .timestamp-note,
+  #kishoMsg, #monthlyMsg, #quarterMsg, #flashMsg,
+  #tab-flash, #tab-admin, #tab-hyoka,
+  .accordion .acc-header .acc-arrow { display: none !important; }
+
+  body { background: white; font-size: 12px; }
+  .main { padding: 0; max-width: 100%; }
+  .card { box-shadow: none; border: 1px solid #ccc; page-break-inside: avoid; margin-bottom: 8px; }
+  .screen { display: block !important; }
+
+  /* 期初設定印刷 */
+  .print-kisho #tab-kisho { display: block !important; }
+  .print-kisho #tab-monthly,
+  .print-kisho #tab-quarter { display: none !important; }
+
+  /* 月次まとめ印刷 */
+  .print-monthly #tab-monthly { display: block !important; }
+  .print-monthly #tab-kisho,
+  .print-monthly #tab-quarter { display: none !important; }
+
+  /* 四半期印刷 */
+  .print-quarter #tab-quarter { display: block !important; }
+  .print-quarter #tab-kisho,
+  .print-quarter #tab-monthly { display: none !important; }
+
+  .print-header {
+    display: flex !important;
+    justify-content: space-between;
+    padding: 8px 0 12px;
+    border-bottom: 1px solid #ccc;
+    margin-bottom: 12px;
+    font-size: 13px;
+  }
+}
+
+.print-header { display: none; }
 </style>
 </head>
 <body>
@@ -280,6 +336,10 @@ select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
       <div class="save-status" id="saveStatus" style="display:none">
         <div class="save-dot"></div><span id="saveText">保存済み</span>
       </div>
+      <button class="print-btn" id="printBtn" style="display:none" onclick="printCurrentTab()">
+        <svg viewBox="0 0 16 16" fill="none"><rect x="3" y="6" width="10" height="7" rx="1" stroke="currentColor" stroke-width="1.2"/><path d="M5 6V3h6v3" stroke="currentColor" stroke-width="1.2"/><rect x="5" y="10" width="6" height="1" fill="currentColor"/></svg>
+        PDF印刷
+      </button>
       <div class="user-pill" onclick="changeUser()" id="userPill"></div>
     </div>
   </div>
@@ -322,6 +382,12 @@ select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
 <!-- MAIN APP -->
 <div id="appMain" style="display:none">
   <div class="main">
+
+    <!-- 印刷用ヘッダー（印刷時のみ表示） -->
+    <div class="print-header" id="printHeader">
+      <div id="printTitle" style="font-weight:500;font-size:14px"></div>
+      <div id="printMeta" style="color:#666;font-size:12px"></div>
+    </div>
 
     <!-- 期初設定 -->
     <div class="screen active" id="tab-kisho">
@@ -549,7 +615,8 @@ select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
       </div>
 
       <div id="dashScreen" style="display:none">
-        <p class="section-label">管理者ダッシュボード</p>
+        <div class="month-tabs" id="dashMonthTabs" style="margin-bottom:4px"></div>
+        <p class="section-label" id="dashMonthLabel">管理者ダッシュボード</p>
         <div class="metric-grid" id="dashMetrics"></div>
         <div class="member-table" id="dashMembers"></div>
       </div>
@@ -694,6 +761,7 @@ let isDirty = false;
 let saveTimer = null;
 let currentMonth = '';
 let currentQuarter = '';
+let currentDashMonth = '';
 
 function getYearMonth() {
   const now = new Date();
@@ -862,6 +930,40 @@ function proceedConfirm() {
   pendingUserId = null;
 }
 
+function printCurrentTab() {
+  const m = MEMBERS[currentUser];
+  const activeTab = document.querySelector('.tab.active');
+  const tabName = activeTab ? activeTab.textContent : '';
+  const now = new Date(new Date().toLocaleString('en-US', {timeZone:'Asia/Tokyo'}));
+  const dateStr = `${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()}`;
+
+  // 印刷ヘッダーを設定
+  document.getElementById('printTitle').textContent = `すみよし 目標・評価管理　${tabName}`;
+  document.getElementById('printMeta').textContent = `${m.name}（等級${m.grade}）　印刷日：${dateStr}`;
+
+  // 印刷対象のクラスを設定
+  const body = document.body;
+  body.classList.remove('print-kisho','print-monthly','print-quarter');
+  const activeScreen = document.querySelector('.screen.active');
+  if(activeScreen) {
+    const id = activeScreen.id;
+    if(id==='tab-kisho') body.classList.add('print-kisho');
+    else if(id==='tab-monthly') body.classList.add('print-monthly');
+    else if(id==='tab-quarter') body.classList.add('print-quarter');
+  }
+
+  // 折り畳みを全て開く
+  document.querySelectorAll('.acc-body').forEach(b => b.classList.add('show'));
+  document.querySelectorAll('.goal-fold-bd').forEach(b => b.classList.add('open'));
+
+  window.print();
+
+  // 印刷後に元に戻す
+  setTimeout(() => {
+    body.classList.remove('print-kisho','print-monthly','print-quarter');
+  }, 1000);
+}
+
 function init() {
   const grid = document.getElementById('memberGrid');
   Object.entries(MEMBERS).forEach(([key, m]) => {
@@ -918,6 +1020,11 @@ function showTab(name) {
   if(name === 'quarter') loadQuarter(currentQuarter);
   if(name === 'admin') { document.getElementById('pwScreen').style.display='flex'; document.getElementById('dashScreen').style.display='none'; }
   if(name === 'hyoka') initHyokaTab();
+  // 印刷ボタンはkisho・monthly・quarterのみ表示
+  const printBtn = document.getElementById('printBtn');
+  if(printBtn) {
+    printBtn.style.display = ['kisho','monthly','quarter'].includes(name) ? 'flex' : 'none';
+  }
 }
 
 function renderGradeInfo(m) {
@@ -1064,7 +1171,7 @@ function renderMonthlyGoals(ym) {
       </div>
       <div class="goal-fold-bd">
         <strong>通期：</strong>${document.getElementById(`g${i}_通期`)?.value||'（未入力）'}<br>
-        <strong>KR：</strong>${getKRs('kr'+i).map((k,j)=>`KR${j+1}：${k}`).join(' / ')||'（未入力）'}
+        <strong>KR：</strong><br>${getKRs('kr'+i).filter(Boolean).map((k,j)=>`KR${j+1}：${k}`).join('<br>')||'（未入力）'}
       </div>
     </div>
     <div style="margin-bottom:12px">
@@ -1179,7 +1286,7 @@ async function saveFlash() {
   const m = MEMBERS[currentUser];
   showMsg('flashMsg','保存中...','info');
   try {
-    const result = await gasPost({action:'saveFlash', userId:currentUser, name:m.name, value:document.getElementById('flashVal').value, s, b});
+    const result = await gasPost({action:'saveFlash', userId:currentUser, name:m.name, value:document.getElementById('flashVal').value, s, b, month:currentMonth});
     if(result.success) {
       setVal('flashS',''); setVal('flashB','');
       showMsg('flashMsg','保存しました','success');
@@ -1355,6 +1462,7 @@ async function adminLogin() {
     if(result.success) {
       document.getElementById('pwScreen').style.display = 'none';
       document.getElementById('dashScreen').style.display = 'block';
+      renderDashMonthTabs();
       loadDashboard();
     } else {
       document.getElementById('pwMsg').innerHTML = '<div class="error-msg">パスワードが違います</div>';
@@ -1362,10 +1470,41 @@ async function adminLogin() {
   } catch(e) { document.getElementById('pwMsg').innerHTML = '<div class="error-msg">通信エラーが発生しました</div>'; }
 }
 
+function renderDashMonthTabs() {
+  const now = new Date(new Date().toLocaleString('en-US', {timeZone: 'Asia/Tokyo'}));
+  const nowM = now.getMonth() + 1;
+  const nowY = now.getFullYear();
+  const fiscalYear = nowM >= 4 ? nowY : nowY - 1;
+  const months = [4,5,6,7,8,9,10,11,12,1,2,3];
+  let html = '';
+  months.forEach(m => {
+    const y = m >= 4 ? fiscalYear : fiscalYear + 1;
+    const ym = y+'-'+String(m).padStart(2,'0');
+    const label = m+'月';
+    // デフォルトは前月をアクティブに
+    const prevMonth = nowM === 1 ? (nowY-1)+'-12' : nowY+'-'+String(nowM-1).padStart(2,'0');
+    const active = ym===prevMonth?' active':'';
+    html += `<div class="month-tab${active}" onclick="switchDashMonth('${ym}',this)">${label}</div>`;
+  });
+  document.getElementById('dashMonthTabs').innerHTML = html;
+  // 前月のデータを初期表示
+  const prevMonth = nowM === 1 ? (nowY-1)+'-12' : nowY+'-'+String(nowM-1).padStart(2,'0');
+  currentDashMonth = prevMonth;
+}
+
+function switchDashMonth(ym, el) {
+  currentDashMonth = ym;
+  document.querySelectorAll('#dashMonthTabs .month-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  loadDashboard();
+}
+
 async function loadDashboard() {
+  const month = currentDashMonth || currentMonth;
+  document.getElementById('dashMonthLabel').textContent = `管理者ダッシュボード　${parseInt(month.split('-')[1])}月`;
   document.getElementById('dashMetrics').innerHTML = '<div style="grid-column:1/-1" class="loading"><div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>読み込み中...</div>';
   try {
-    const result = await gasCall({action:'getDashboard', month:currentMonth});
+    const result = await gasCall({action:'getDashboard', month:month});
     if(!result.success) return;
     const d = result.data;
     const flashDone = d.members.filter(m=>m.flashCount>0).length;
@@ -1479,27 +1618,34 @@ function getVal(id) { const el = document.getElementById(id); return el ? el.val
 function setVal(id, val) { const el = document.getElementById(id); if(el && val) el.value = val; }
 
 function clearMonthlyForm() {
+  // バリュー評価フォームをクリア
   ['v2','v4','v6'].forEach(v => {
-    ['s','b','i','a'].forEach(f => setVal(`m_${v}${f}`,''));
+    ['s','b','i','a'].forEach(f => {
+      const el = document.getElementById(`m_${v}${f}`);
+      if(el) el.value = '';
+    });
     const evalEl = document.getElementById(`m_${v}eval`);
     if(evalEl) evalEl.value = '';
-    // ABC評価ボタンのクリア
-    document.querySelectorAll(`#tab-monthly .abc-btn`).forEach(b => {
-      b.classList.remove('selA','selB','selC');
-    });
   });
+  // ABC評価ボタンを全てクリア
+  document.querySelectorAll('#tab-monthly .abc-btn').forEach(b => {
+    b.classList.remove('selA','selB','selC');
+  });
+  // 進捗ボタンを全てクリア
+  document.querySelectorAll('#tab-monthly .prog-btn').forEach(b => {
+    b.classList.remove('ok','warn','ng');
+  });
+  // 目標コメントとKR hiddenをクリア
   for(let i=1;i<=3;i++){
     ['kr1','kr2','kr3'].forEach(kr => {
       const el = document.getElementById(`m_g${i}${kr}`);
       if(el) el.value = '';
-      // 進捗ボタンのクリア
-      document.querySelectorAll(`#tab-monthly .prog-btn`).forEach(b => {
-        b.classList.remove('ok','warn','ng');
-      });
     });
-    setVal(`m_g${i}comment`,'');
+    const commentEl = document.getElementById(`m_g${i}comment`);
+    if(commentEl) commentEl.value = '';
   }
-  document.getElementById('monthlyTimestamp').textContent = '';
+  const ts = document.getElementById('monthlyTimestamp');
+  if(ts) ts.textContent = '';
 }
 
 function markDirty() {
