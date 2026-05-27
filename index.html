@@ -312,6 +312,181 @@ textarea.input-ok { border-color: var(--accent-mid); }
 .qt-trend-arrow { color: var(--text-tertiary); font-size: 10px; }
 .qt-no-data { font-size: 12px; color: var(--text-tertiary); text-align: center; padding: 16px; }
 
+/* ===== SBIAステップバッジ ===== */
+.sbia-step {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: white;
+  font-size: 9px;
+  font-weight: 700;
+  font-family: 'DM Sans', sans-serif;
+  margin-right: 4px;
+  flex-shrink: 0;
+}
+.sbia-label-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 3px;
+}
+
+/* ===== 四半期自己評価サマリーカード ===== */
+.q-summary-card {
+  background: var(--info-light);
+  border: 1px solid #C4D8F0;
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  font-size: 12px;
+  color: var(--info);
+  line-height: 1.8;
+}
+.q-summary-card-title {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #4A7AB5;
+  margin-bottom: 6px;
+}
+.q-summary-item { display: flex; align-items: center; gap: 6px; margin-bottom: 2px; }
+.q-summary-item .qt-badge { width: 18px; height: 18px; font-size: 10px; }
+
+/* ===== コピペ警告 ===== */
+.copypaste-warn {
+  display: none;
+  background: var(--warn-light);
+  border: 1px solid #E8C97A;
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  font-size: 11px;
+  color: var(--warn);
+  margin-bottom: 10px;
+  line-height: 1.6;
+}
+.copypaste-warn.show { display: block; }
+
+/* ===== 四半期レポート一覧（管理者） ===== */
+.q-report-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.q-report-toggle-btn {
+  padding: 5px 14px;
+  border: 1px solid var(--border-mid);
+  border-radius: 20px;
+  font-size: 11px;
+  cursor: pointer;
+  background: var(--bg);
+  color: var(--text-tertiary);
+  font-family: 'Noto Sans JP', sans-serif;
+  transition: all 0.15s;
+}
+.q-report-toggle-btn.active {
+  background: var(--purple-light);
+  border-color: var(--purple);
+  color: var(--purple);
+  font-weight: 500;
+}
+.q-report-table {
+  display: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.q-report-table.show { display: block; }
+.q-report-header {
+  display: grid;
+  grid-template-columns: 120px repeat(3,1fr) repeat(3,44px);
+  gap: 0;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  padding: 8px 12px;
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  letter-spacing: 0.04em;
+}
+.q-report-row {
+  display: grid;
+  grid-template-columns: 120px repeat(3,1fr) repeat(3,44px);
+  gap: 0;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  align-items: center;
+  font-size: 12px;
+}
+.q-report-row:last-child { border-bottom: none; }
+.q-report-name { font-weight: 500; display: flex; align-items: center; gap: 6px; }
+.q-report-rate {
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 500;
+  font-size: 13px;
+  text-align: center;
+}
+.q-report-rate.high { color: var(--accent); }
+.q-report-rate.mid { color: var(--warn); }
+.q-report-rate.low { color: var(--danger); }
+.q-report-badge-cell { display: flex; justify-content: center; }
+
+/* ===== 差異ハイライト（評価シート） ===== */
+.diff-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.diff-box {
+  background: var(--bg);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  text-align: center;
+}
+.diff-box-label {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+.diff-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: 11px;
+}
+.diff-arrow { color: var(--text-tertiary); font-size: 12px; }
+.diff-gap-warn {
+  background: var(--warn-light);
+  border: 1px solid #E8C97A;
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  font-size: 11px;
+  color: var(--warn);
+  margin-top: 6px;
+  text-align: center;
+}
+.diff-gap-ok {
+  background: var(--accent-light);
+  border: 1px solid var(--accent-mid);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  font-size: 11px;
+  color: var(--accent);
+  margin-top: 6px;
+  text-align: center;
+}
+
 /* ===== METRIC GRID ===== */
 .metric-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px; }
 .metric-card { background: var(--bg); border-radius: var(--radius-md); padding: 12px; }
@@ -706,6 +881,9 @@ textarea.input-ok { border-color: var(--accent-mid); }
       </div>
 
       <div class="month-tabs" id="monthTabs"></div>
+      <div class="copypaste-warn" id="copypaste-warn">
+        📋 先月のまとめと内容が似ています。今月の新しい気づきや変化も加えてみましょう。
+      </div>
       <p class="section-label">バリュー評価　月次まとめ</p>
 
       <div class="val-block">
@@ -718,28 +896,28 @@ textarea.input-ok { border-color: var(--accent-mid); }
           <div id="flashRef_v2" style="margin-bottom:10px"></div>
           <div class="sbia-grid">
             <div>
-              <div class="sbia-label">S：状況</div>
+              <div class="sbia-label-row"><span class="sbia-step">1</span><span class="sbia-label">S：状況</span></div>
               <div class="textarea-wrap">
                 <textarea id="m_v2s" rows="2" placeholder="いつ・どんな状況だったか" oninput="markDirty('monthly');updateCharCount(this)"></textarea>
                 <div class="char-count" id="cc_m_v2s">0文字</div>
               </div>
             </div>
             <div>
-              <div class="sbia-label">B：行動</div>
+              <div class="sbia-label-row"><span class="sbia-step">2</span><span class="sbia-label">B：行動</span></div>
               <div class="textarea-wrap">
                 <textarea id="m_v2b" rows="2" placeholder="どんな行動をとったか" oninput="markDirty('monthly');updateCharCount(this)"></textarea>
                 <div class="char-count" id="cc_m_v2b">0文字</div>
               </div>
             </div>
             <div>
-              <div class="sbia-label">I：影響・結果</div>
+              <div class="sbia-label-row"><span class="sbia-step">3</span><span class="sbia-label">I：影響・結果</span></div>
               <div class="textarea-wrap">
                 <textarea id="m_v2i" rows="2" placeholder="行動の結果、何が変わったか" oninput="markDirty('monthly');updateCharCount(this)"></textarea>
                 <div class="char-count" id="cc_m_v2i">0文字</div>
               </div>
             </div>
             <div>
-              <div class="sbia-label">A：次のアクション</div>
+              <div class="sbia-label-row"><span class="sbia-step">4</span><span class="sbia-label">A：次のアクション</span></div>
               <div class="textarea-wrap">
                 <textarea id="m_v2a" rows="2" placeholder="次の1ヶ月で何をするか" oninput="markDirty('monthly');updateCharCount(this)"></textarea>
                 <div class="char-count" id="cc_m_v2a">0文字</div>
@@ -767,28 +945,28 @@ textarea.input-ok { border-color: var(--accent-mid); }
           <div id="flashRef_v4" style="margin-bottom:10px"></div>
           <div class="sbia-grid">
             <div>
-              <div class="sbia-label">S：状況</div>
+              <div class="sbia-label-row"><span class="sbia-step">1</span><span class="sbia-label">S：状況</span></div>
               <div class="textarea-wrap">
                 <textarea id="m_v4s" rows="2" placeholder="いつ・どんな状況だったか" oninput="markDirty('monthly');updateCharCount(this)"></textarea>
                 <div class="char-count" id="cc_m_v4s">0文字</div>
               </div>
             </div>
             <div>
-              <div class="sbia-label">B：行動</div>
+              <div class="sbia-label-row"><span class="sbia-step">2</span><span class="sbia-label">B：行動</span></div>
               <div class="textarea-wrap">
                 <textarea id="m_v4b" rows="2" placeholder="どんな行動をとったか" oninput="markDirty('monthly');updateCharCount(this)"></textarea>
                 <div class="char-count" id="cc_m_v4b">0文字</div>
               </div>
             </div>
             <div>
-              <div class="sbia-label">I：影響・結果</div>
+              <div class="sbia-label-row"><span class="sbia-step">3</span><span class="sbia-label">I：影響・結果</span></div>
               <div class="textarea-wrap">
                 <textarea id="m_v4i" rows="2" placeholder="行動の結果、何が変わったか" oninput="markDirty('monthly');updateCharCount(this)"></textarea>
                 <div class="char-count" id="cc_m_v4i">0文字</div>
               </div>
             </div>
             <div>
-              <div class="sbia-label">A：次のアクション</div>
+              <div class="sbia-label-row"><span class="sbia-step">4</span><span class="sbia-label">A：次のアクション</span></div>
               <div class="textarea-wrap">
                 <textarea id="m_v4a" rows="2" placeholder="次の1ヶ月で何をするか" oninput="markDirty('monthly');updateCharCount(this)"></textarea>
                 <div class="char-count" id="cc_m_v4a">0文字</div>
@@ -816,28 +994,28 @@ textarea.input-ok { border-color: var(--accent-mid); }
           <div id="flashRef_v6" style="margin-bottom:10px"></div>
           <div class="sbia-grid">
             <div>
-              <div class="sbia-label">S：状況</div>
+              <div class="sbia-label-row"><span class="sbia-step">1</span><span class="sbia-label">S：状況</span></div>
               <div class="textarea-wrap">
                 <textarea id="m_v6s" rows="2" placeholder="いつ・どんな状況だったか" oninput="markDirty('monthly');updateCharCount(this)"></textarea>
                 <div class="char-count" id="cc_m_v6s">0文字</div>
               </div>
             </div>
             <div>
-              <div class="sbia-label">B：行動</div>
+              <div class="sbia-label-row"><span class="sbia-step">2</span><span class="sbia-label">B：行動</span></div>
               <div class="textarea-wrap">
                 <textarea id="m_v6b" rows="2" placeholder="どんな行動をとったか" oninput="markDirty('monthly');updateCharCount(this)"></textarea>
                 <div class="char-count" id="cc_m_v6b">0文字</div>
               </div>
             </div>
             <div>
-              <div class="sbia-label">I：影響・結果</div>
+              <div class="sbia-label-row"><span class="sbia-step">3</span><span class="sbia-label">I：影響・結果</span></div>
               <div class="textarea-wrap">
                 <textarea id="m_v6i" rows="2" placeholder="行動の結果、何が変わったか" oninput="markDirty('monthly');updateCharCount(this)"></textarea>
                 <div class="char-count" id="cc_m_v6i">0文字</div>
               </div>
             </div>
             <div>
-              <div class="sbia-label">A：次のアクション</div>
+              <div class="sbia-label-row"><span class="sbia-step">4</span><span class="sbia-label">A：次のアクション</span></div>
               <div class="textarea-wrap">
                 <textarea id="m_v6a" rows="2" placeholder="次の1ヶ月で何をするか" oninput="markDirty('monthly');updateCharCount(this)"></textarea>
                 <div class="char-count" id="cc_m_v6a">0文字</div>
@@ -939,6 +1117,11 @@ textarea.input-ok { border-color: var(--accent-mid); }
       </div>
 
       <p class="section-label">総合レビュー</p>
+      <!-- 自己評価サマリーカード -->
+      <div class="q-summary-card" id="qSummaryCard" style="display:none">
+        <div class="q-summary-card-title">この四半期の自己評価　まとめ</div>
+        <div id="qSummaryCardContent"></div>
+      </div>
       <div class="card">
         <label>四半期総合コメント</label>
         <div class="textarea-wrap">
@@ -973,8 +1156,32 @@ textarea.input-ok { border-color: var(--accent-mid); }
       <div id="dashScreen" style="display:none">
         <div class="month-tabs" id="dashMonthTabs" style="margin-bottom:4px"></div>
         <p class="section-label" id="dashMonthLabel">管理者ダッシュボード</p>
-        <div class="metric-grid" id="dashMetrics"></div>
-        <div class="member-table" id="dashMembers"></div>
+        <!-- 表示切替 -->
+        <div class="q-report-toggle">
+          <div class="q-report-toggle-btn active" id="dashViewMonthly" onclick="switchDashView('monthly')">月次まとめ</div>
+          <div class="q-report-toggle-btn" id="dashViewQuarter" onclick="switchDashView('quarter')">四半期レポート</div>
+        </div>
+        <div id="dashMonthlyView">
+          <div class="metric-grid" id="dashMetrics"></div>
+          <div class="member-table" id="dashMembers"></div>
+        </div>
+        <div id="dashQuarterView" style="display:none">
+          <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center;flex-wrap:wrap">
+            <select id="dashQuarterSelect" onchange="loadQuarterReport()" style="margin-bottom:0;flex:1;min-width:160px"></select>
+          </div>
+          <div class="q-report-table show" id="quarterReportTable">
+            <div class="q-report-header">
+              <div>メンバー</div>
+              <div style="text-align:center">目標①</div>
+              <div style="text-align:center">目標②</div>
+              <div style="text-align:center">目標③</div>
+              <div style="text-align:center">②</div>
+              <div style="text-align:center">④</div>
+              <div style="text-align:center">⑥</div>
+            </div>
+            <div id="quarterReportBody"><div class="loading" style="grid-column:1/-1"><div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>四半期を選択してください</div></div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -1018,6 +1225,14 @@ textarea.input-ok { border-color: var(--accent-mid); }
           </div>
 
           <p class="section-label">バリュー評価　最終</p>
+          <!-- 差異ハイライト -->
+          <div class="card" id="diffHighlightCard" style="display:none">
+            <div class="card-title" style="font-size:12px;color:var(--text-secondary)">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="var(--warn)" stroke-width="1.2"/><path d="M7 4v3.5M7 9.5v.5" stroke="var(--warn)" stroke-width="1.2" stroke-linecap="round"/></svg>
+              メンバー自己申告との比較（四半期）
+            </div>
+            <div id="diffHighlightContent"></div>
+          </div>
           <div class="card">
             <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
               <div style="text-align:center;background:var(--bg);border-radius:var(--radius-md);padding:12px 6px">
@@ -1267,7 +1482,237 @@ function applyLift() {
   closeLiftModal();
 }
 
-// ===== 四半期サマリー =====
+// ===== 四半期自己評価サマリーカード =====
+function renderQSummaryCard(quarterMonthlyResults) {
+  const card = document.getElementById('qSummaryCard');
+  const content = document.getElementById('qSummaryCardContent');
+  if(!card || !content) return;
+
+  const vMap = [
+    { key:'v2', label:'②期待を超える', evalKey:'バリュー②自己評価' },
+    { key:'v4', label:'④自分を律し', evalKey:'バリュー④自己評価' },
+    { key:'v6', label:'⑥発信・対話',  evalKey:'バリュー⑥自己評価' }
+  ];
+  const order = {'A':3,'B':2,'C':1,'':0};
+  let html = '';
+  let hasAny = false;
+
+  vMap.forEach(v => {
+    const vals = quarterMonthlyResults.map(r => r?.data ? (r.data[v.evalKey]||'') : '');
+    if(vals.every(val=>!val)) return;
+    hasAny = true;
+    const filled = vals.filter(Boolean);
+    const avg = filled.length ? filled.reduce((a,c)=>a+order[c],0)/filled.length : 0;
+    const first = vals.find(val=>val);
+    const last = [...vals].reverse().find(val=>val);
+    let trend = '';
+    if(first && last) {
+      if(order[last] > order[first]) trend = '<span style="color:var(--accent);font-size:10px;font-weight:500">↑ 改善傾向</span>';
+      else if(order[last] < order[first]) trend = '<span style="color:var(--danger);font-size:10px;font-weight:500">↓ 要注意</span>';
+      else trend = '<span style="color:var(--text-tertiary);font-size:10px">→ 横ばい</span>';
+    }
+    const badgesHtml = vals.map(val => {
+      const cls = val || 'none';
+      return `<span class="qt-badge ${cls}">${val||'－'}</span>`;
+    }).join('<span style="color:var(--text-tertiary);font-size:10px;margin:0 2px">→</span>');
+
+    // ひとこと文
+    let comment = '';
+    if(avg >= 3) comment = '安定してAを発揮しています。この四半期の強みとして言語化しましょう。';
+    else if(avg >= 2) comment = 'Bが中心です。どの場面で発揮できなかったか振り返ると次につながります。';
+    else if(avg > 0) comment = 'C評価が目立ちます。行動の機会をつくることから始めてみましょう。';
+
+    html += `<div class="q-summary-item" style="flex-direction:column;align-items:flex-start;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid rgba(26,63,107,0.1)">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+        <span style="font-size:11px;font-weight:500;min-width:80px">${v.label}</span>
+        <div style="display:flex;align-items:center;gap:3px">${badgesHtml}</div>
+        ${trend}
+      </div>
+      ${comment ? `<div style="font-size:11px;color:var(--info);opacity:0.85">${comment}</div>` : ''}
+    </div>`;
+  });
+
+  if(hasAny) {
+    content.innerHTML = html;
+    card.style.display = 'block';
+  } else {
+    card.style.display = 'none';
+  }
+}
+
+// ===== コピペ防止チェック =====
+function calcSimilarity(a, b) {
+  if(!a || !b) return 0;
+  const setA = new Set(a.replace(/\s/g,'').split(''));
+  const setB = new Set(b.replace(/\s/g,'').split(''));
+  const intersection = new Set([...setA].filter(x => setB.has(x)));
+  return intersection.size / Math.max(setA.size, setB.size);
+}
+
+async function checkCopyPaste(currentYm) {
+  const warn = document.getElementById('copypaste-warn');
+  if(!warn) return;
+  // 前月を計算
+  const [y, m] = currentYm.split('-').map(Number);
+  const prevM = m === 1 ? 12 : m - 1;
+  const prevY = m === 1 ? y - 1 : y;
+  const prevYm = prevY + '-' + String(prevM).padStart(2,'0');
+  try {
+    const [cur, prev] = await Promise.all([
+      gasCall({action:'getMonthly', userId:currentUser, yearMonth:currentYm}),
+      gasCall({action:'getMonthly', userId:currentUser, yearMonth:prevYm})
+    ]);
+    if(!cur.data || !prev.data) { warn.classList.remove('show'); return; }
+    const fields = ['バリュー②S','バリュー②B','バリュー④S','バリュー④B','バリュー⑥S','バリュー⑥B'];
+    const curText = fields.map(k=>cur.data[k]||'').join('');
+    const prevText = fields.map(k=>prev.data[k]||'').join('');
+    if(!prevText.trim()) { warn.classList.remove('show'); return; }
+    const sim = calcSimilarity(curText, prevText);
+    sim >= 0.8 ? warn.classList.add('show') : warn.classList.remove('show');
+  } catch(e) { warn.classList.remove('show'); }
+}
+
+// ===== 管理者：表示切替 =====
+function switchDashView(view) {
+  document.getElementById('dashViewMonthly').classList.toggle('active', view==='monthly');
+  document.getElementById('dashViewQuarter').classList.toggle('active', view==='quarter');
+  document.getElementById('dashMonthlyView').style.display = view==='monthly' ? 'block' : 'none';
+  document.getElementById('dashQuarterView').style.display = view==='quarter' ? 'block' : 'none';
+  if(view==='quarter') initQuarterReportSelect();
+}
+
+function initQuarterReportSelect() {
+  const sel = document.getElementById('dashQuarterSelect');
+  if(sel.options.length > 0) return;
+  const now = new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Tokyo'}));
+  const nowM = now.getMonth()+1; const nowY = now.getFullYear();
+  const fy = nowM>=4 ? nowY : nowY-1;
+  const qList = [
+    fy+'年度 1Q', fy+'年度 2Q', fy+'年度 3Q', fy+'年度 4Q'
+  ];
+  const currentQ = getQuarterLabel(nowY+'-'+String(nowM).padStart(2,'0'));
+  qList.forEach(q => {
+    const opt = document.createElement('option');
+    opt.value = q; opt.textContent = q;
+    if(q===currentQ) opt.selected = true;
+    sel.appendChild(opt);
+  });
+  loadQuarterReport();
+}
+
+async function loadQuarterReport() {
+  const quarter = document.getElementById('dashQuarterSelect')?.value;
+  if(!quarter) return;
+  const body = document.getElementById('quarterReportBody');
+  body.innerHTML = '<div class="loading"><div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>読み込み中...</div>';
+  try {
+    const results = await Promise.all(
+      Object.entries(MEMBERS).map(([userId, m]) =>
+        gasCall({action:'getQuarter', userId, quarter}).then(r=>({userId, name:m.name, grade:m.grade, color:m.color, bg:m.bg, data:r.data})).catch(()=>({userId, name:m.name, grade:m.grade, color:m.color, bg:m.bg, data:null}))
+      )
+    );
+    const rateClass = v => {
+      if(!v && v!==0) return '';
+      const n = parseFloat(v);
+      if(n>=100) return 'high'; if(n>=70) return 'mid'; return 'low';
+    };
+    const qNumMap = {1:'①',2:'②',3:'③'};
+    body.innerHTML = results.map(r => {
+      const d = r.data;
+      const rates = [1,2,3].map(i => {
+        const val = d ? (d[`目標${qNumMap[i]}達成率`]||'') : '';
+        const cls = rateClass(val);
+        return val ? `<div class="q-report-rate ${cls}">${parseFloat(val).toFixed(1)}%</div>` : `<div class="q-report-rate" style="color:var(--text-tertiary)">－</div>`;
+      });
+      const badges = ['②','④','⑥'].map((n,i) => {
+        const key = `バリュー${n}四半期評価`;
+        const val = d ? (d[key]||'') : '';
+        const cls = val||'none';
+        return `<div class="q-report-badge-cell"><span class="qt-badge ${cls}">${val||'－'}</span></div>`;
+      });
+      return `<div class="q-report-row">
+        <div class="q-report-name">
+          <div class="avatar" style="background:${r.bg};color:${r.color};width:24px;height:24px;font-size:11px">${r.name[0]}</div>
+          <div><div style="font-size:12px;font-weight:500">${r.name}</div><div style="font-size:10px;color:var(--text-tertiary)">等級${r.grade}</div></div>
+        </div>
+        ${rates.join('')}
+        ${badges.join('')}
+      </div>`;
+    }).join('');
+  } catch(e) { body.innerHTML = '<div class="error-msg">読み込みに失敗しました</div>'; }
+}
+
+// ===== 評価シート：差異ハイライト =====
+async function loadDiffHighlight(userId, term) {
+  const card = document.getElementById('diffHighlightCard');
+  const content = document.getElementById('diffHighlightContent');
+  if(!card || !content) return;
+  card.style.display = 'none';
+
+  // 四半期データ（メンバーの自己評価）を取得
+  const now = new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Tokyo'}));
+  const nowM = now.getMonth()+1; const nowY = now.getFullYear();
+  const fy = nowM>=4 ? nowY : nowY-1;
+  const quarters = term==='前期'
+    ? [fy+'年度 1Q', fy+'年度 2Q']
+    : [fy+'年度 3Q', fy+'年度 4Q'];
+
+  try {
+    const qResults = await Promise.all(quarters.map(q=>gasCall({action:'getQuarter', userId, quarter:q})));
+    // 最新の四半期データから自己評価を取得
+    let selfV2='', selfV4='', selfV6='';
+    qResults.reverse().forEach(r => {
+      if(r.data) {
+        if(!selfV2) selfV2 = r.data['バリュー②四半期評価']||'';
+        if(!selfV4) selfV4 = r.data['バリュー④四半期評価']||'';
+        if(!selfV6) selfV6 = r.data['バリュー⑥四半期評価']||'';
+      }
+    });
+    if(!selfV2 && !selfV4 && !selfV6) { card.style.display='none'; return; }
+
+    // 評価者の現在の評価を取得（hiddenフィールドから）
+    const evalV2 = getVal('h_v2eval');
+    const evalV4 = getVal('h_v4eval');
+    const evalV6 = getVal('h_v6eval');
+
+    const order = {'A':3,'B':2,'C':1,'':0};
+    const vItems = [
+      { label:'②期待を超える', self:selfV2, eval:evalV2 },
+      { label:'④自分を律し',   self:selfV4, eval:evalV4 },
+      { label:'⑥発信・対話',   self:selfV6, eval:evalV6 }
+    ];
+
+    let html = '';
+    let hasGap = false;
+    vItems.forEach(v => {
+      if(!v.self) return;
+      const selfCls = v.self||'none'; const evalCls = v.eval||'none';
+      const gap = order[v.eval] - order[v.self];
+      let gapHtml = '';
+      if(v.eval) {
+        if(gap < -1) { hasGap=true; gapHtml=`<div class="diff-gap-warn">⚠ 評価者の評価がメンバーより2段階以上低い</div>`; }
+        else if(gap > 1) { hasGap=true; gapHtml=`<div class="diff-gap-warn">⚠ 評価者の評価がメンバーより2段階以上高い</div>`; }
+        else if(gap===0) { gapHtml=`<div class="diff-gap-ok">✓ 自己評価と一致</div>`; }
+        else { gapHtml=`<div style="font-size:11px;color:var(--text-tertiary);text-align:center;margin-top:6px">1段階の差</div>`; }
+      }
+      html += `<div style="margin-bottom:12px">
+        <div style="font-size:11px;font-weight:500;color:var(--text-secondary);margin-bottom:6px">${v.label}</div>
+        <div class="diff-row">
+          <div class="diff-box"><div class="diff-box-label">メンバー自己申告</div><span class="qt-badge ${selfCls}" style="margin:0 auto;width:28px;height:28px;font-size:14px">${v.self||'－'}</span></div>
+          <div class="diff-box"><div class="diff-box-label">評価者評価</div><span class="qt-badge ${evalCls}" style="margin:0 auto;width:28px;height:28px;font-size:14px">${v.eval||'未入力'}</span></div>
+        </div>
+        ${gapHtml}
+      </div>`;
+    });
+
+    if(html) {
+      content.innerHTML = html;
+      card.style.display = 'block';
+    }
+  } catch(e) { card.style.display='none'; }
+}
+
+
 async function renderQuarterSummary(quarter) {
   const content = document.getElementById('quarterSummaryContent');
   content.innerHTML = '<div class="qt-no-data">読み込み中...</div>';
@@ -1321,6 +1766,8 @@ async function renderQuarterSummary(quarter) {
     });
 
     content.innerHTML = timelineHtml + (trendHtml ? '<div style="margin-top:8px">' + trendHtml + '</div>' : '');
+    // 自己評価サマリーカードも描画
+    renderQSummaryCard(results);
   } catch(e) {
     content.innerHTML = '<div class="qt-no-data">データの読み込みに失敗しました</div>';
   }
@@ -1439,6 +1886,8 @@ function loadHyoka() {
       const ts = d['最終更新日時']||'';
       document.getElementById('hyokaTimestamp').textContent = ts ? `最終更新：${ts}` : '';
     }
+    // 差異ハイライトを評価データ読込後に実行
+    loadDiffHighlight(userId, term);
   }).catch(e => console.error(e));
   loadHyokaMemos(userId, term);
 }
@@ -1993,6 +2442,8 @@ async function loadMonthly(ym) {
     }
   } catch(e) { console.error(e); }
   loadFlashRefs(ym);
+  // コピペチェック（非同期・ノンブロッキング）
+  checkCopyPaste(ym);
 }
 
 async function saveMonthly() {
@@ -2182,6 +2633,12 @@ function selABC(btn, hiddenId, val) {
   document.getElementById(hiddenId).value = val;
   const tabName = getActiveTabName();
   markDirty(tabName);
+  // 評価シートのバリュー変更時は差異ハイライトを更新
+  if(['h_v2eval','h_v4eval','h_v6eval'].includes(hiddenId)) {
+    const userId = document.getElementById('hyokaMember')?.value;
+    const term = document.getElementById('hyokaTerm')?.value;
+    if(userId && term) loadDiffHighlight(userId, term);
+  }
 }
 
 function setABCVal(hiddenId, val) {
