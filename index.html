@@ -45,6 +45,95 @@ body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: va
 .save-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent-mid); }
 .user-pill { background: var(--bg); border: 1px solid var(--border-mid); border-radius: 20px; padding: 4px 12px; font-size: 12px; cursor: pointer; color: var(--text-secondary); }
 
+/* ===== 年度セレクター ===== */
+.fy-select {
+  background: var(--bg);
+  border: 1px solid var(--border-mid);
+  border-radius: 20px;
+  padding: 4px 26px 4px 12px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-family: 'Noto Sans JP', sans-serif;
+  cursor: pointer;
+  width: auto;
+  margin-bottom: 0;
+}
+.fy-select.past-year {
+  background: var(--warn-light);
+  border-color: #E8C97A;
+  color: var(--warn);
+  font-weight: 500;
+}
+.fy-banner {
+  display: none;
+  background: var(--warn-light);
+  border-bottom: 1px solid #E8C97A;
+  padding: 6px 20px;
+  font-size: 11px;
+  color: var(--warn);
+  text-align: center;
+}
+.fy-banner.show { display: block; }
+
+/* ===== 条件付き構造化コメント ===== */
+.struct-comment {
+  display: none;
+  background: var(--warn-light);
+  border: 1px solid #E8C97A;
+  border-radius: var(--radius-md);
+  padding: 12px;
+  margin-bottom: 4px;
+}
+.struct-comment.show { display: block; }
+.struct-comment-title {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--warn);
+  margin-bottom: 8px;
+  line-height: 1.6;
+}
+.struct-comment label { font-size: 11px; color: var(--warn); }
+.struct-comment textarea, .struct-comment input[type="text"] {
+  background: var(--surface);
+  margin-bottom: 8px;
+}
+.struct-hint {
+  font-size: 10px;
+  color: var(--warn);
+  opacity: 0.8;
+  line-height: 1.5;
+}
+
+/* ===== 通信エラーリトライ ===== */
+.retry-msg {
+  background: var(--danger-light);
+  border: 1px solid #F09595;
+  border-radius: var(--radius-md);
+  padding: 12px;
+  font-size: 13px;
+  color: var(--danger);
+  margin-bottom: 12px;
+}
+.retry-note {
+  font-size: 11px;
+  color: var(--danger);
+  opacity: 0.85;
+  margin-top: 4px;
+}
+.retry-btn {
+  margin-top: 8px;
+  background: var(--danger);
+  color: white;
+  border: none;
+  padding: 7px 20px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 500;
+  font-family: 'Noto Sans JP', sans-serif;
+  cursor: pointer;
+}
+.retry-btn:hover { opacity: 0.9; }
+
 /* ===== TABS ===== */
 .tabs { background: var(--surface); border-bottom: 1px solid var(--border); overflow-x: auto; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
 .tabs::-webkit-scrollbar { display: none; }
@@ -734,11 +823,13 @@ textarea.input-ok { border-color: var(--accent-mid); }
         <svg viewBox="0 0 16 16" fill="none"><rect x="3" y="6" width="10" height="7" rx="1" stroke="currentColor" stroke-width="1.2"/><path d="M5 6V3h6v3" stroke="currentColor" stroke-width="1.2"/><rect x="5" y="10" width="6" height="1" fill="currentColor"/></svg>
         PDF印刷
       </button>
+      <select class="fy-select" id="fySelect" onchange="changeFiscalYear(this.value)"></select>
       <div class="user-pill" onclick="changeUser()" id="userPill"></div>
     </div>
   </div>
 </header>
 
+<div class="fy-banner" id="fyBanner">📖 過去年度を表示中です。今年度に戻るには右上の年度を切り替えてください。</div>
 <div class="tabs" id="appTabs" style="display:none">
   <div class="tabs-inner" id="tabsInner">
     <div class="tab active" onclick="showTab('kisho')" id="tabKisho">期初設定<span class="tab-dirty-dot" id="dot-kisho"></span></div>
@@ -768,11 +859,11 @@ textarea.input-ok { border-color: var(--accent-mid); }
 <div class="lift-modal" id="liftModal">
   <div class="lift-modal-box">
     <div class="lift-modal-title" id="liftModalTitle">フラッシュメモから引き上げ</div>
-    <div class="lift-modal-sub">S欄に使いたいエピソードを選んでください（複数選択可）</div>
+    <div class="lift-modal-sub">月次まとめに使いたいエピソードを選んでください（S・Bの両欄に反映されます／複数選択可）</div>
     <div id="liftModalList"></div>
     <div class="lift-modal-btns">
       <button class="btn-outline" onclick="closeLiftModal()">キャンセル</button>
-      <button class="btn-accent" onclick="applyLift()">S欄に反映する</button>
+      <button class="btn-accent" onclick="applyLift()">S・B欄に反映する</button>
     </div>
   </div>
 </div>
@@ -1467,18 +1558,25 @@ function closeLiftModal() {
 function applyLift() {
   const selectedEls = document.querySelectorAll('#liftModalList .lift-item.selected');
   if(!selectedEls.length) { closeLiftModal(); return; }
-  const texts = Array.from(selectedEls).map(el => {
-    const idx = parseInt(el.dataset.idx);
-    const m = liftFlashData[idx];
-    return m ? m.s : '';
-  }).filter(Boolean);
-  const targetEl = document.getElementById(liftTargetFieldId);
-  if(targetEl) {
-    const existing = targetEl.value.trim();
-    targetEl.value = existing ? existing + '\n' + texts.join('\n') : texts.join('\n');
-    updateCharCount(targetEl);
-    markDirty('monthly');
+  const items = Array.from(selectedEls).map(el => liftFlashData[parseInt(el.dataset.idx)]).filter(Boolean);
+  const sTexts = items.map(m=>m.s).filter(Boolean);
+  const bTexts = items.map(m=>m.b).filter(Boolean);
+  // S欄へ転記
+  const sEl = document.getElementById(liftTargetFieldId);
+  if(sEl && sTexts.length) {
+    const existing = sEl.value.trim();
+    sEl.value = existing ? existing + '\n' + sTexts.join('\n') : sTexts.join('\n');
+    updateCharCount(sEl);
   }
+  // B欄へ転記（liftTargetFieldIdの末尾sをbに置換：m_v2s → m_v2b）
+  const bFieldId = liftTargetFieldId.replace(/s$/, 'b');
+  const bEl = document.getElementById(bFieldId);
+  if(bEl && bTexts.length) {
+    const existing = bEl.value.trim();
+    bEl.value = existing ? existing + '\n' + bTexts.join('\n') : bTexts.join('\n');
+    updateCharCount(bEl);
+  }
+  markDirty('monthly');
   closeLiftModal();
 }
 
@@ -1586,7 +1684,7 @@ function initQuarterReportSelect() {
   if(sel.options.length > 0) return;
   const now = new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Tokyo'}));
   const nowM = now.getMonth()+1; const nowY = now.getFullYear();
-  const fy = nowM>=4 ? nowY : nowY-1;
+  const fy = getSelectedFY();
   const qList = [
     fy+'年度 1Q', fy+'年度 2Q', fy+'年度 3Q', fy+'年度 4Q'
   ];
@@ -1652,7 +1750,7 @@ async function loadDiffHighlight(userId, term) {
   // 四半期データ（メンバーの自己評価）を取得
   const now = new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Tokyo'}));
   const nowM = now.getMonth()+1; const nowY = now.getFullYear();
-  const fy = nowM>=4 ? nowY : nowY-1;
+  const fy = getSelectedFY();
   const quarters = term==='前期'
     ? [fy+'年度 1Q', fy+'年度 2Q']
     : [fy+'年度 3Q', fy+'年度 4Q'];
@@ -1820,6 +1918,90 @@ function getQualityLabel(data) {
 }
 
 // ===== 基本関数 =====
+// ===== 年度管理 =====
+let selectedFY = null; // null = 今年度
+
+function getCurrentFY() {
+  const now = new Date(new Date().toLocaleString('en-US', {timeZone:'Asia/Tokyo'}));
+  const m = now.getMonth()+1;
+  const y = now.getFullYear();
+  return m >= 4 ? y : y - 1;
+}
+
+function getSelectedFY() {
+  return selectedFY !== null ? selectedFY : getCurrentFY();
+}
+
+function initFYSelect() {
+  const sel = document.getElementById('fySelect');
+  if(!sel) return;
+  const curFY = getCurrentFY();
+  sel.innerHTML = '';
+  // 今年度と過去2年分（運用初年度は過去分にデータがないだけで害はない）
+  for(let fy = curFY; fy >= curFY - 2; fy--) {
+    const opt = document.createElement('option');
+    opt.value = fy;
+    opt.textContent = fy + '年度';
+    if(fy === getSelectedFY()) opt.selected = true;
+    sel.appendChild(opt);
+  }
+}
+
+function changeFiscalYear(fy) {
+  fy = parseInt(fy);
+  const curFY = getCurrentFY();
+  selectedFY = (fy === curFY) ? null : fy;
+  // 表示状態の切り替え
+  const sel = document.getElementById('fySelect');
+  const banner = document.getElementById('fyBanner');
+  const isPast = selectedFY !== null;
+  if(sel) sel.classList.toggle('past-year', isPast);
+  if(banner) banner.classList.toggle('show', isPast);
+  // 基準月・四半期を選択年度に合わせる
+  if(isPast) {
+    currentMonth = fy + '-04'; // 過去年度は期首から
+    currentQuarter = fy + '年度 1Q';
+  } else {
+    currentMonth = getYearMonth();
+    currentQuarter = getQuarterLabel(currentMonth);
+  }
+  // 全タブ再描画
+  renderMonthTabs();
+  renderFlashMonthTabs();
+  renderQuarterTabs();
+  loadMonthly(currentMonth);
+  loadFlash();
+  loadQuarter(currentQuarter);
+  renderQuarterSummary(currentQuarter);
+  // 評価シートが開いていれば再読込
+  const hyokaMemberSel = document.getElementById('hyokaMember');
+  if(hyokaMemberSel && hyokaMemberSel.value) loadHyoka();
+  // 管理者の四半期レポートセレクトをリセット（次回開いた時に選択年度で再生成）
+  const dashQSel = document.getElementById('dashQuarterSelect');
+  if(dashQSel) dashQSel.innerHTML = '';
+}
+
+// ===== 離脱防止 =====
+window.addEventListener('beforeunload', function(e) {
+  const anyDirty = Object.values(dirtyTabs).some(v=>v);
+  if(anyDirty) {
+    e.preventDefault();
+    e.returnValue = '未保存の変更があります。このページを離れますか？';
+    return e.returnValue;
+  }
+});
+
+// ===== 通信エラーリトライ =====
+function showRetryMsg(msgId, retryFnName) {
+  const el = document.getElementById(msgId);
+  if(!el) return;
+  el.innerHTML = `<div class="retry-msg">
+    通信エラーが発生しました。
+    <div class="retry-note">✓ 入力内容は消えていません。そのまま再試行できます。</div>
+    <button class="retry-btn" onclick="${retryFnName}()">再試行する</button>
+  </div>`;
+}
+
 function getYearMonth() {
   const now = new Date();
   const jst = new Date(now.toLocaleString('en-US', {timeZone: 'Asia/Tokyo'}));
@@ -1864,11 +2046,30 @@ function hyokaLogin() {
     });
 }
 
+// 評価シートのフォームを全クリア（前期/後期・メンバー切替時のデータ残留バグ対策）
+function clearHyokaForm() {
+  setValForce('h_strength',''); setValForce('h_growth','');
+  ['h_v2eval','h_v4eval','h_v6eval'].forEach(id => {
+    const el = document.getElementById(id); if(el) el.value = '';
+    document.querySelectorAll(`.abc-btn[onclick*="${id}"]`).forEach(b=>b.classList.remove('selA','selB','selC'));
+  });
+  ['h_g1rate','h_g2rate','h_g3rate'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  setValForce('h_fb_comment',''); setValForce('h_next_comment','');
+  const ts = document.getElementById('hyokaTimestamp');
+  if(ts) ts.textContent = '';
+  const diffCard = document.getElementById('diffHighlightCard');
+  if(diffCard) diffCard.style.display = 'none';
+}
+
+// 空文字でも強制的にセットする（setValはvalが空だとスキップされる版が過去に存在したため専用関数）
+function setValForce(id, val) { const el = document.getElementById(id); if(el) el.value = val; }
+
 function loadHyoka() {
   const userId = document.getElementById('hyokaMember').value;
   const term = document.getElementById('hyokaTerm').value;
   if(!userId) { document.getElementById('hyokaContent').style.display='none'; return; }
   document.getElementById('hyokaContent').style.display = 'block';
+  clearHyokaForm(); // 切替時に必ずクリア（前のデータ残留を防止）
   renderHyokaMonthlyMemos(userId, term);
   gasCall({action:'getHyoka', userId, term}).then(result => {
     if(result.success && result.data) {
@@ -1896,7 +2097,7 @@ function renderHyokaMonthlyMemos(userId, term) {
   const months = term==='前期' ? [4,5,6,7,8,9] : [10,11,12,1,2,3];
   const now = new Date(new Date().toLocaleString('en-US', {timeZone:'Asia/Tokyo'}));
   const nowM = now.getMonth()+1; const nowY = now.getFullYear();
-  const fy = nowM>=4 ? nowY : nowY-1;
+  const fy = getSelectedFY();
   let html = '';
   months.forEach(m => {
     const y = m>=4 ? fy : fy+1;
@@ -1928,7 +2129,7 @@ async function saveHyoka() {
   const m = MEMBERS[userId];
   const now = new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Tokyo'}));
   const nowM = now.getMonth()+1; const nowY = now.getFullYear();
-  const fy = nowM>=4 ? nowY : nowY-1;
+  const fy = getSelectedFY();
   const months = term==='前期' ? [4,5,6,7,8,9] : [10,11,12,1,2,3];
   const memos = {};
   months.forEach(mo => {
@@ -1955,7 +2156,7 @@ async function saveHyoka() {
       document.getElementById('hyokaTimestamp').textContent = `最終更新：${result.timestamp}`;
       clearDirty('hyoka');
     } else showMsg('hyokaMsg','エラー：'+result.error,'error');
-  } catch(e) { showMsg('hyokaMsg','通信エラーが発生しました','error'); }
+  } catch(e) { showRetryMsg('hyokaMsg','saveHyoka'); }
 }
 
 // ===== ユーザー選択 =====
@@ -2023,6 +2224,11 @@ function selectUser(key) {
   currentUser = key;
   dirtyTabs = {};
   currentFlashDataCache = {};
+  // 年度は今年度にリセット
+  selectedFY = null;
+  initFYSelect();
+  document.getElementById('fySelect')?.classList.remove('past-year');
+  document.getElementById('fyBanner')?.classList.remove('show');
   const m = MEMBERS[key];
   document.getElementById('selectScreen').style.display = 'none';
   document.getElementById('appMain').style.display = 'block';
@@ -2141,7 +2347,7 @@ function renderMonthTabs() {
   const now = new Date(new Date().toLocaleString('en-US', {timeZone: 'Asia/Tokyo'}));
   const nowM = now.getMonth() + 1;
   const nowY = now.getFullYear();
-  const fiscalYear = nowM >= 4 ? nowY : nowY - 1;
+  const fiscalYear = getSelectedFY();
   let html = '';
   const months = [4,5,6,7,8,9,10,11,12,1,2,3];
   months.forEach(m => {
@@ -2169,7 +2375,7 @@ function renderFlashMonthTabs() {
   const now = new Date(new Date().toLocaleString('en-US', {timeZone: 'Asia/Tokyo'}));
   const nowM = now.getMonth() + 1;
   const nowY = now.getFullYear();
-  const fiscalYear = nowM >= 4 ? nowY : nowY - 1;
+  const fiscalYear = getSelectedFY();
   let html = '';
   const months = [4,5,6,7,8,9,10,11,12,1,2,3];
   months.forEach(m => {
@@ -2194,7 +2400,7 @@ function renderQuarterTabs() {
   const now = new Date(new Date().toLocaleString('en-US', {timeZone: 'Asia/Tokyo'}));
   const nowM = now.getMonth() + 1;
   const nowY = now.getFullYear();
-  const fiscalYear = nowM >= 4 ? nowY : nowY - 1;
+  const fiscalYear = getSelectedFY();
   const qList = [
     {q: fiscalYear+'年度 1Q', ym: fiscalYear+'-04'},
     {q: fiscalYear+'年度 2Q', ym: fiscalYear+'-07'},
@@ -2246,7 +2452,19 @@ function renderMonthlyGoals(ym) {
       </div>`).join('')||`<div class="prog-row"><span class="prog-num">KR</span><span style="font-size:12px;color:var(--text-tertiary)">期初設定でKRを入力してください</span></div>`}
       <div>
         <label style="margin-bottom:4px">目標${i}　コメント</label>
-        <div class="textarea-wrap">
+        <!-- 構造化コメント（warn/ng時のみ表示） -->
+        <div class="struct-comment" id="struct_g${i}">
+          <div class="struct-comment-title">△・✕のKRがあります。遅れの状況を整理しましょう（空欄でも保存できます）</div>
+          <label>原因：なぜ遅れているか</label>
+          <textarea id="m_g${i}_cause" rows="2" placeholder="例：他業務の繁忙により着手が2週間遅れた" oninput="markDirty('monthly')"></textarea>
+          <label>対策：どうリカバリーするか</label>
+          <textarea id="m_g${i}_action" rows="2" placeholder="例：優先度を見直し、週次で30分の作業時間を確保する" oninput="markDirty('monthly')"></textarea>
+          <label>期日：いつまでに立て直すか</label>
+          <input type="text" id="m_g${i}_due" placeholder="例：来月末まで" oninput="markDirty('monthly')" style="margin-bottom:4px">
+          <div class="struct-hint">この3点は1on1での対話の土台になります。わかる範囲で書いてください。</div>
+        </div>
+        <!-- 自由記述（全KRがok/未選択時） -->
+        <div class="textarea-wrap" id="free_g${i}">
           <textarea id="m_g${i}comment" rows="3" placeholder="この目標に対する今月の振り返りを書いてください" oninput="markDirty('monthly');updateCharCount(this)"></textarea>
           <div class="char-count" id="cc_m_g${i}comment">0文字</div>
         </div>
@@ -2327,7 +2545,7 @@ async function saveKisho() {
     const result = await gasPost(data);
     if(result.success) { showMsg('kishoMsg', '保存しました', 'success'); clearDirty('kisho'); }
     else showMsg('kishoMsg', 'エラー：'+result.error, 'error');
-  } catch(e) { showMsg('kishoMsg', '通信エラーが発生しました', 'error'); }
+  } catch(e) { showRetryMsg('kishoMsg','saveKisho'); }
 }
 
 async function saveFlash() {
@@ -2342,7 +2560,7 @@ async function saveFlash() {
       showMsg('flashMsg','保存しました','success');
       loadFlash();
     } else showMsg('flashMsg','エラー：'+result.error,'error');
-  } catch(e) { showMsg('flashMsg','通信エラーが発生しました','error'); }
+  } catch(e) { showRetryMsg('flashMsg','saveFlash'); }
 }
 
 async function loadFlash() {
@@ -2433,9 +2651,7 @@ async function loadMonthly(ym) {
             });
           }
         });
-        setVal(`m_g${i}comment`, d[`目標${n}コメント`]||'');
-        const commentEl = document.getElementById(`m_g${i}comment`);
-        if(commentEl && commentEl.value) updateCharCount(commentEl);
+        distributeGoalComment(i, d[`目標${n}コメント`]||'');
       }
       const ts = d['最終更新日時']||'';
       document.getElementById('monthlyTimestamp').textContent = ts ? `最終更新：${ts}` : '';
@@ -2453,19 +2669,25 @@ async function saveMonthly() {
     v2s:getVal('m_v2s'), v2b:getVal('m_v2b'), v2i:getVal('m_v2i'), v2a:getVal('m_v2a'), v2eval:getVal('m_v2eval'),
     v4s:getVal('m_v4s'), v4b:getVal('m_v4b'), v4i:getVal('m_v4i'), v4a:getVal('m_v4a'), v4eval:getVal('m_v4eval'),
     v6s:getVal('m_v6s'), v6b:getVal('m_v6b'), v6i:getVal('m_v6i'), v6a:getVal('m_v6a'), v6eval:getVal('m_v6eval'),
-    g1kr1:getVal('m_g1kr1'), g1kr2:getVal('m_g1kr2'), g1kr3:getVal('m_g1kr3'), g1comment:getVal('m_g1comment'),
-    g2kr1:getVal('m_g2kr1'), g2kr2:getVal('m_g2kr2'), g2kr3:getVal('m_g2kr3'), g2comment:getVal('m_g2comment'),
-    g3kr1:getVal('m_g3kr1'), g3kr2:getVal('m_g3kr2'), g3kr3:getVal('m_g3kr3'), g3comment:getVal('m_g3comment')
+    g1kr1:getVal('m_g1kr1'), g1kr2:getVal('m_g1kr2'), g1kr3:getVal('m_g1kr3'), g1comment:buildGoalComment(1),
+    g2kr1:getVal('m_g2kr1'), g2kr2:getVal('m_g2kr2'), g2kr3:getVal('m_g2kr3'), g2comment:buildGoalComment(2),
+    g3kr1:getVal('m_g3kr1'), g3kr2:getVal('m_g3kr2'), g3kr3:getVal('m_g3kr3'), g3comment:buildGoalComment(3)
   };
+  // warn/ngなのに原因・対策・期日が全空欄の目標を検出（警告のみ・保存はブロックしない）
+  const emptyDelayGoals = [1,2,3].filter(i => goalHasDelay(i) && !getVal(`m_g${i}_cause`).trim() && !getVal(`m_g${i}_action`).trim() && !getVal(`m_g${i}_due`).trim());
   showMsg('monthlyMsg','保存中...','info');
   try {
     const result = await gasPost(data);
     if(result.success) {
-      showMsg('monthlyMsg','保存しました','success');
+      if(emptyDelayGoals.length) {
+        showMsg('monthlyMsg', `保存しました（目標${emptyDelayGoals.join('・')}の遅れの原因・対策が未記入です。1on1までに整理しておくと対話がスムーズです）`, 'success');
+      } else {
+        showMsg('monthlyMsg','保存しました','success');
+      }
       document.getElementById('monthlyTimestamp').textContent = `最終更新：${result.timestamp}`;
       clearDirty('monthly');
     } else showMsg('monthlyMsg','エラー：'+result.error,'error');
-  } catch(e) { showMsg('monthlyMsg','通信エラーが発生しました','error'); }
+  } catch(e) { showRetryMsg('monthlyMsg','saveMonthly'); }
 }
 
 async function loadQuarter(q) {
@@ -2515,7 +2737,7 @@ async function saveQuarter() {
       document.getElementById('quarterTimestamp').textContent = `最終更新：${result.timestamp}`;
       clearDirty('quarter');
     } else showMsg('quarterMsg','エラー：'+result.error,'error');
-  } catch(e) { showMsg('quarterMsg','通信エラーが発生しました','error'); }
+  } catch(e) { showRetryMsg('quarterMsg','saveQuarter'); }
 }
 
 async function adminLogin() {
@@ -2538,7 +2760,7 @@ function renderDashMonthTabs() {
   const now = new Date(new Date().toLocaleString('en-US', {timeZone: 'Asia/Tokyo'}));
   const nowM = now.getMonth() + 1;
   const nowY = now.getFullYear();
-  const fiscalYear = nowM >= 4 ? nowY : nowY - 1;
+  const fiscalYear = getSelectedFY();
   const months = [4,5,6,7,8,9,10,11,12,1,2,3];
   let html = '';
   months.forEach(m => {
@@ -2673,6 +2895,56 @@ function selProg(btn, hiddenId, val) {
   btn.classList.add(val);
   document.getElementById(hiddenId).value = val;
   markDirty('monthly');
+  // 目標番号を抽出してコメント欄モードを更新（m_g1kr2 → 1）
+  const match = hiddenId.match(/^m_g(\d)kr\d$/);
+  if(match) updateGoalCommentMode(parseInt(match[1]));
+}
+
+// ===== 条件付き構造化コメント =====
+// 目標iのKR進捗にwarn/ngが1つでもあれば構造化欄、なければ自由記述欄を表示
+function goalHasDelay(i) {
+  return ['kr1','kr2','kr3'].some(kr => {
+    const el = document.getElementById(`m_g${i}${kr}`);
+    return el && (el.value === 'warn' || el.value === 'ng');
+  });
+}
+
+function updateGoalCommentMode(i) {
+  const structEl = document.getElementById(`struct_g${i}`);
+  const freeEl = document.getElementById(`free_g${i}`);
+  if(!structEl || !freeEl) return;
+  const delayed = goalHasDelay(i);
+  structEl.classList.toggle('show', delayed);
+  freeEl.style.display = delayed ? 'none' : 'block';
+}
+
+// 保存用：モードに応じてコメントを組み立てる
+function buildGoalComment(i) {
+  if(goalHasDelay(i)) {
+    const cause = getVal(`m_g${i}_cause`).trim();
+    const action = getVal(`m_g${i}_action`).trim();
+    const due = getVal(`m_g${i}_due`).trim();
+    if(!cause && !action && !due) return ''; // 全空欄なら空で保存
+    return `【原因】${cause}\n【対策】${action}\n【期日】${due}`;
+  }
+  return getVal(`m_g${i}comment`);
+}
+
+// 読込用：構造化形式ならパースして3欄へ、それ以外は自由記述へ
+function distributeGoalComment(i, text) {
+  const structMatch = (text||'').match(/【原因】([\s\S]*?)【対策】([\s\S]*?)【期日】([\s\S]*)$/);
+  if(structMatch) {
+    setValForce(`m_g${i}_cause`, structMatch[1].trim());
+    setValForce(`m_g${i}_action`, structMatch[2].trim());
+    setValForce(`m_g${i}_due`, structMatch[3].trim());
+    setValForce(`m_g${i}comment`, '');
+  } else {
+    setValForce(`m_g${i}comment`, text||'');
+    setValForce(`m_g${i}_cause`, ''); setValForce(`m_g${i}_action`, ''); setValForce(`m_g${i}_due`, '');
+    const el = document.getElementById(`m_g${i}comment`);
+    if(el && el.value) updateCharCount(el);
+  }
+  updateGoalCommentMode(i);
 }
 
 function toggleType(btn) { btn.classList.toggle('sel'); markDirty('kisho'); }
@@ -2710,6 +2982,9 @@ function clearMonthlyForm() {
     ['kr1','kr2','kr3'].forEach(kr => { const el = document.getElementById(`m_g${i}${kr}`); if(el) el.value = ''; });
     const commentEl = document.getElementById(`m_g${i}comment`);
     if(commentEl) { commentEl.value = ''; commentEl.classList.remove('input-empty','input-thin','input-ok'); }
+    // 構造化3欄もクリアしてモードを自由記述に戻す
+    setValForce(`m_g${i}_cause`, ''); setValForce(`m_g${i}_action`, ''); setValForce(`m_g${i}_due`, '');
+    updateGoalCommentMode(i);
   }
   const ts = document.getElementById('monthlyTimestamp');
   if(ts) ts.textContent = '';
