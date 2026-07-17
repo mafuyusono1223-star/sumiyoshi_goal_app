@@ -2463,10 +2463,13 @@ function renderMonthlyGoals(ym) {
           <input type="text" id="m_g${i}_due" placeholder="例：来月末まで" oninput="markDirty('monthly')" style="margin-bottom:4px">
           <div class="struct-hint">この3点は1on1での対話の土台になります。わかる範囲で書いてください。</div>
         </div>
-        <!-- 自由記述（全KRがok/未選択時） -->
+        <!-- 自由記述（過去のコメント、または全KRがok/未選択時） -->
         <div class="textarea-wrap" id="free_g${i}">
           <textarea id="m_g${i}comment" rows="3" placeholder="この目標に対する今月の振り返りを書いてください" oninput="markDirty('monthly');updateCharCount(this)"></textarea>
           <div class="char-count" id="cc_m_g${i}comment">0文字</div>
+        </div>
+        <div id="switchToStruct_g${i}" style="display:none;text-align:right;margin-top:-8px;margin-bottom:8px">
+          <span onclick="updateGoalCommentMode(${i},{fromUserAction:true})" style="font-size:11px;color:var(--warn);cursor:pointer;text-decoration:underline">△・✕があります。原因・対策・期日の形式で整理する ›</span>
         </div>
       </div>
     </div>`;
@@ -2897,7 +2900,7 @@ function selProg(btn, hiddenId, val) {
   markDirty('monthly');
   // 目標番号を抽出してコメント欄モードを更新（m_g1kr2 → 1）
   const match = hiddenId.match(/^m_g(\d)kr\d$/);
-  if(match) updateGoalCommentMode(parseInt(match[1]));
+  if(match) updateGoalCommentMode(parseInt(match[1]), {fromUserAction: true});
 }
 
 // ===== 条件付き構造化コメント =====
@@ -2909,22 +2912,35 @@ function goalHasDelay(i) {
   });
 }
 
-function updateGoalCommentMode(i) {
+function updateGoalCommentMode(i, options) {
+  options = options || {};
   const structEl = document.getElementById(`struct_g${i}`);
   const freeEl = document.getElementById(`free_g${i}`);
+  const switchLinkEl = document.getElementById(`switchToStruct_g${i}`);
   if(!structEl || !freeEl) return;
-  const delayed = goalHasDelay(i);
+  const commentEl = document.getElementById(`m_g${i}comment`);
+  const hasLegacyText = !options.fromUserAction && commentEl && commentEl.value.trim().length > 0;
+  // 過去（構造化欄が存在する前）に書かれた自由記述コメントが残っている場合は、
+  // warn/ngが付いていても自動的に隠さない（データ消失に見える表示バグを防止）
+  const delayed = goalHasDelay(i) && !hasLegacyText;
   structEl.classList.toggle('show', delayed);
   freeEl.style.display = delayed ? 'none' : 'block';
+  // 自由記述のまま残っている＋KRに遅れがある場合のみ、切替リンクを出す
+  if(switchLinkEl) switchLinkEl.style.display = (!delayed && goalHasDelay(i)) ? 'block' : 'none';
 }
 
 // 保存用：モードに応じてコメントを組み立てる
 function buildGoalComment(i) {
-  if(goalHasDelay(i)) {
+  const structEl = document.getElementById(`struct_g${i}`);
+  const isStructMode = structEl && structEl.classList.contains('show');
+  if(isStructMode) {
     const cause = getVal(`m_g${i}_cause`).trim();
     const action = getVal(`m_g${i}_action`).trim();
     const due = getVal(`m_g${i}_due`).trim();
-    if(!cause && !action && !due) return ''; // 全空欄なら空で保存
+    if(!cause && !action && !due) {
+      // 構造化欄が全空欄の場合、既存の自由記述コメントがあれば消さずに保持する（安全側）
+      return getVal(`m_g${i}comment`).trim();
+    }
     return `【原因】${cause}\n【対策】${action}\n【期日】${due}`;
   }
   return getVal(`m_g${i}comment`);
@@ -2938,13 +2954,15 @@ function distributeGoalComment(i, text) {
     setValForce(`m_g${i}_action`, structMatch[2].trim());
     setValForce(`m_g${i}_due`, structMatch[3].trim());
     setValForce(`m_g${i}comment`, '');
+    updateGoalCommentMode(i);
   } else {
     setValForce(`m_g${i}comment`, text||'');
     setValForce(`m_g${i}_cause`, ''); setValForce(`m_g${i}_action`, ''); setValForce(`m_g${i}_due`, '');
     const el = document.getElementById(`m_g${i}comment`);
     if(el && el.value) updateCharCount(el);
+    // 読込直後は「過去の自由記述」として扱い、warn/ngでも自動非表示にしない
+    updateGoalCommentMode(i);
   }
-  updateGoalCommentMode(i);
 }
 
 function toggleType(btn) { btn.classList.toggle('sel'); markDirty('kisho'); }
