@@ -134,6 +134,59 @@ body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: va
 }
 .retry-btn:hover { opacity: 0.9; }
 
+/* ===== 記入ロック ===== */
+.lock-banner {
+  display: none;
+  align-items: center;
+  gap: 10px;
+  background: var(--purple-light);
+  border: 1px solid #C4A8E8;
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  font-size: 12px;
+  color: var(--purple);
+}
+.lock-banner.show { display: flex; }
+.lock-banner-info { flex: 1; line-height: 1.6; }
+.lock-unlock-btn {
+  background: var(--surface);
+  border: 1px solid var(--purple);
+  color: var(--purple);
+  border-radius: var(--radius-sm);
+  padding: 5px 14px;
+  font-size: 11px;
+  font-family: 'Noto Sans JP', sans-serif;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.lock-unlock-btn:hover { background: var(--purple); color: white; }
+.lock-btn {
+  width: 100%;
+  margin-top: 10px;
+  background: var(--surface);
+  border: 1px dashed var(--border-mid);
+  color: var(--text-tertiary);
+  border-radius: var(--radius-md);
+  padding: 9px 16px;
+  font-size: 12px;
+  font-family: 'Noto Sans JP', sans-serif;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.lock-btn:hover { border-color: var(--purple); color: var(--purple); }
+/* ロック中：クリック式ボタンを無効化 */
+.locked .abc-btn, .locked .prog-btn, .locked .type-btn,
+.locked .flash-lift-btn, .locked .add-kr-btn {
+  pointer-events: none;
+  opacity: 0.55;
+}
+.locked textarea:disabled, .locked input:disabled {
+  background: var(--bg);
+  color: var(--text-secondary);
+  cursor: not-allowed;
+}
+
 /* ===== TABS ===== */
 .tabs { background: var(--surface); border-bottom: 1px solid var(--border); overflow-x: auto; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
 .tabs::-webkit-scrollbar { display: none; }
@@ -868,6 +921,21 @@ textarea.input-ok { border-color: var(--accent-mid); }
   </div>
 </div>
 
+<!-- ロックパスワードモーダル -->
+<div class="confirm-overlay" id="lockModal">
+  <div class="confirm-box">
+    <div style="width:44px;height:44px;background:var(--purple-light);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:18px">🔒</div>
+    <div style="font-size:16px;font-weight:500;margin-bottom:6px" id="lockModalTitle">記入内容をロックします</div>
+    <div style="font-size:12px;color:var(--text-tertiary);margin-bottom:18px" id="lockModalSub">パスワード保持者（管理者・田中・坪田）のみ操作できます</div>
+    <input type="password" id="lockModalPw" placeholder="パスワードを入力" style="text-align:center">
+    <div id="lockModalMsg" style="margin-bottom:6px"></div>
+    <div class="confirm-btns">
+      <button class="btn-outline" onclick="closeLockModal()">キャンセル</button>
+      <button class="btn-accent" onclick="confirmLockAction()">実行する</button>
+    </div>
+  </div>
+</div>
+
 <!-- SELECT SCREEN -->
 <div id="selectScreen">
   <div class="select-screen">
@@ -896,6 +964,11 @@ textarea.input-ok { border-color: var(--accent-mid); }
 
     <!-- 期初設定 -->
     <div class="screen active" id="tab-kisho">
+      <div class="lock-banner" id="lockBanner_kisho">
+        <span>🔒</span>
+        <span class="lock-banner-info" id="lockInfo_kisho"></span>
+        <button class="lock-unlock-btn" onclick="openLockModal('kisho','unlock')">解除する</button>
+      </div>
       <p class="section-label">等級情報・期待値</p>
       <div id="gradeInfo"></div>
 
@@ -926,6 +999,7 @@ textarea.input-ok { border-color: var(--accent-mid); }
       <div id="goalForms"></div>
       <button class="btn-accent" onclick="saveKisho()">保存する</button>
       <div id="kishoMsg" style="margin-top:10px"></div>
+      <button class="lock-btn" id="lockBtn_kisho" onclick="openLockModal('kisho','lock')">🔒 1on1完了後にロックする（パスワード保持者用）</button>
     </div>
 
     <!-- フラッシュメモ -->
@@ -972,6 +1046,11 @@ textarea.input-ok { border-color: var(--accent-mid); }
       </div>
 
       <div class="month-tabs" id="monthTabs"></div>
+      <div class="lock-banner" id="lockBanner_monthly">
+        <span>🔒</span>
+        <span class="lock-banner-info" id="lockInfo_monthly"></span>
+        <button class="lock-unlock-btn" onclick="openLockModal('monthly','unlock')">解除する</button>
+      </div>
       <div class="copypaste-warn" id="copypaste-warn">
         📋 先月のまとめと内容が似ています。今月の新しい気づきや変化も加えてみましょう。
       </div>
@@ -1130,11 +1209,17 @@ textarea.input-ok { border-color: var(--accent-mid); }
       <div class="timestamp-note" id="monthlyTimestamp"></div>
       <button class="btn-accent" onclick="saveMonthly()">保存する</button>
       <div id="monthlyMsg" style="margin-top:10px"></div>
+      <button class="lock-btn" id="lockBtn_monthly" onclick="openLockModal('monthly','lock')">🔒 1on1完了後にロックする（パスワード保持者用）</button>
     </div>
 
     <!-- 四半期 -->
     <div class="screen" id="tab-quarter">
       <div class="month-tabs" id="quarterTabs"></div>
+      <div class="lock-banner" id="lockBanner_quarter">
+        <span>🔒</span>
+        <span class="lock-banner-info" id="lockInfo_quarter"></span>
+        <button class="lock-unlock-btn" onclick="openLockModal('quarter','unlock')">解除する</button>
+      </div>
 
       <!-- 四半期サマリー -->
       <div class="quarter-summary" id="quarterSummary">
@@ -1229,6 +1314,7 @@ textarea.input-ok { border-color: var(--accent-mid); }
       <div class="timestamp-note" id="quarterTimestamp"></div>
       <button class="btn-accent" onclick="saveQuarter()">保存する</button>
       <div id="quarterMsg" style="margin-top:10px"></div>
+      <button class="lock-btn" id="lockBtn_quarter" onclick="openLockModal('quarter','lock')">🔒 1on1完了後にロックする（パスワード保持者用）</button>
     </div>
 
     <!-- 管理者 -->
@@ -1981,6 +2067,82 @@ function changeFiscalYear(fy) {
   if(dashQSel) dashQSel.innerHTML = '';
 }
 
+// ===== 記入ロック =====
+let lockPending = null; // {kind, key, mode}
+
+function lockKeyFor(kind) {
+  if(kind === 'kisho') return '';
+  if(kind === 'monthly') return currentMonth;
+  return currentQuarter;
+}
+
+function openLockModal(kind, mode) {
+  lockPending = {kind, key: lockKeyFor(kind), mode};
+  const kindLabel = kind==='kisho' ? '期初設定' : kind==='monthly' ? `月次まとめ（${parseInt(currentMonth.split('-')[1])}月）` : `四半期まとめ（${currentQuarter}）`;
+  document.getElementById('lockModalTitle').textContent =
+    mode==='lock' ? `${kindLabel}をロックします` : `${kindLabel}のロックを解除します`;
+  document.getElementById('lockModalPw').value = '';
+  document.getElementById('lockModalMsg').innerHTML = '';
+  document.getElementById('lockModal').classList.add('show');
+}
+
+function closeLockModal() {
+  document.getElementById('lockModal').classList.remove('show');
+  lockPending = null;
+}
+
+async function confirmLockAction() {
+  if(!lockPending) return;
+  const pw = document.getElementById('lockModalPw').value;
+  if(!pw) {
+    document.getElementById('lockModalMsg').innerHTML = '<div class="error-msg" style="margin-bottom:0">パスワードを入力してください</div>';
+    return;
+  }
+  const {kind, key, mode} = lockPending;
+  const action = mode==='lock' ? 'lockRecord' : 'unlockRecord';
+  document.getElementById('lockModalMsg').innerHTML = '<div style="font-size:12px;color:var(--text-tertiary)">処理中...</div>';
+  try {
+    const result = await gasPost({action, kind, userId: currentUser, key, password: pw});
+    if(result.success) {
+      closeLockModal();
+      applyLockUI(kind, result.lock);
+    } else {
+      document.getElementById('lockModalMsg').innerHTML = `<div class="error-msg" style="margin-bottom:0">${result.error}</div>`;
+    }
+  } catch(e) {
+    document.getElementById('lockModalMsg').innerHTML = '<div class="error-msg" style="margin-bottom:0">通信エラーが発生しました。再度お試しください。</div>';
+  }
+}
+
+// ロック状態をUIに反映する
+function applyLockUI(kind, lock) {
+  const containerId = kind==='kisho' ? 'tab-kisho' : kind==='monthly' ? 'tab-monthly' : 'tab-quarter';
+  const container = document.getElementById(containerId);
+  if(!container) return;
+  const locked = !!(lock && lock.locked);
+  // バナー
+  const banner = document.getElementById('lockBanner_' + kind);
+  if(banner) {
+    banner.classList.toggle('show', locked);
+    if(locked) {
+      document.getElementById('lockInfo_' + kind).textContent =
+        `ロック済み（実行者：${lock.lockedBy}／${lock.lockedAt}）　編集にはロック解除が必要です`;
+    }
+  }
+  // ロックボタン（未ロック時のみ表示）
+  const lockBtn = document.getElementById('lockBtn_' + kind);
+  if(lockBtn) lockBtn.style.display = locked ? 'none' : 'block';
+  // 入力欄の無効化
+  container.querySelectorAll('textarea, input[type="text"], input[type="number"]').forEach(el => {
+    el.disabled = locked;
+  });
+  // クリック式ボタンの無効化（CSSで制御）
+  container.classList.toggle('locked', locked);
+  // 保存ボタンの非表示
+  const saveBtn = container.querySelector('button.btn-accent[onclick^="save"]');
+  if(saveBtn) saveBtn.style.display = locked ? 'none' : 'block';
+}
+
 // ===== 離脱防止 =====
 window.addEventListener('beforeunload', function(e) {
   const anyDirty = Object.values(dirtyTabs).some(v=>v);
@@ -2490,6 +2652,7 @@ async function gasPost(data) {
 async function loadKisho() {
   try {
     const result = await gasCall({action:'getKisho', userId:currentUser});
+    applyLockUI('kisho', result.lock || {locked:false});
     if(result.success && result.data) {
       const d = result.data;
       const numMap = {1:'①', 2:'②', 3:'③'};
@@ -2623,6 +2786,7 @@ async function loadMonthly(ym) {
   clearMonthlyForm();
   try {
     const result = await gasCall({action:'getMonthly', userId:currentUser, yearMonth:ym});
+    applyLockUI('monthly', result.lock || {locked:false});
     if(result.success && result.data) {
       const d = result.data;
       const vMap = {'v2':'②','v4':'④','v6':'⑥'};
@@ -2702,6 +2866,7 @@ async function loadQuarter(q) {
   setVal('q_comment',''); setVal('q_intent','');
   try {
     const result = await gasCall({action:'getQuarter', userId:currentUser, quarter:q});
+    applyLockUI('quarter', result.lock || {locked:false});
     if(result.success && result.data) {
       const d = result.data;
       setABCVal('q_v2eval', d['バリュー②四半期評価']||'');
