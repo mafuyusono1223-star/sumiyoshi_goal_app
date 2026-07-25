@@ -407,22 +407,6 @@ textarea.input-ok { border-color: var(--accent-mid); }
   align-items: center;
   gap: 6px;
 }
-.quarter-timeline {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  margin-bottom: 12px;
-}
-.qt-month {
-  background: var(--bg);
-  border-radius: var(--radius-md);
-  padding: 10px 8px;
-  text-align: center;
-}
-.qt-month-label { font-size: 10px; color: var(--text-tertiary); margin-bottom: 8px; }
-.qt-val-row { display: flex; flex-direction: column; gap: 4px; }
-.qt-val-item { display: flex; align-items: center; justify-content: space-between; font-size: 10px; }
-.qt-val-name { color: var(--text-tertiary); }
 .qt-badge {
   font-size: 10px;
   font-weight: 700;
@@ -454,6 +438,125 @@ textarea.input-ok { border-color: var(--accent-mid); }
 .qt-trend-arrow { color: var(--text-tertiary); font-size: 10px; }
 .qt-no-data { font-size: 12px; color: var(--text-tertiary); text-align: center; padding: 16px; }
 
+/* ===== 原文ふりかえり（アコーディオン） ===== */
+.recall-block {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  margin-bottom: 8px;
+  background: var(--surface);
+}
+.recall-hd {
+  padding: 11px 14px;
+  background: var(--surface);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  user-select: none;
+}
+.recall-hd:hover { background: var(--bg); }
+.recall-hd-left { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
+.recall-hd-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.recall-hd-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.recall-arrow { font-size: 10px; color: var(--text-tertiary); transition: transform 0.2s; }
+.recall-hd.open .recall-arrow { transform: rotate(180deg); }
+.recall-bd { display: none; border-top: 1px solid var(--border); background: var(--bg); padding: 12px 14px; }
+.recall-bd.open { display: block; }
+
+/* 月ごとのブロック */
+.recall-month { margin-bottom: 12px; }
+.recall-month:last-child { margin-bottom: 0; }
+.recall-month-hd {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--border);
+}
+.recall-month-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  font-family: 'DM Sans', sans-serif;
+}
+.recall-empty { font-size: 11px; color: var(--text-tertiary); padding: 2px 0; }
+.recall-sbia { display: flex; flex-direction: column; gap: 5px; }
+.recall-item { display: flex; gap: 8px; align-items: flex-start; }
+.recall-item-key {
+  font-size: 9px;
+  font-weight: 700;
+  font-family: 'DM Sans', sans-serif;
+  color: white;
+  background: var(--accent);
+  border-radius: 3px;
+  padding: 2px 5px;
+  flex-shrink: 0;
+  margin-top: 2px;
+  min-width: 16px;
+  text-align: center;
+}
+.recall-item-key.i { background: #4A7AB5; }
+.recall-item-key.a { background: var(--purple); }
+.recall-item-text {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  white-space: pre-wrap;
+  word-break: break-word;
+  flex: 1;
+}
+.recall-item-text.blank { color: var(--text-tertiary); font-style: normal; }
+/* 目標コメント原文（構造化） */
+.recall-struct-tag {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--warn);
+  background: var(--warn-light);
+  border-radius: 3px;
+  padding: 1px 6px;
+  margin-right: 4px;
+}
+.recall-kr-row { display: flex; align-items: center; gap: 5px; margin-bottom: 4px; flex-wrap: wrap; }
+.recall-kr-badge {
+  font-size: 10px;
+  font-weight: 500;
+  border-radius: 3px;
+  padding: 1px 7px;
+}
+.recall-kr-badge.ok { background: var(--accent-light); color: var(--accent); }
+.recall-kr-badge.warn { background: var(--warn-light); color: var(--warn); }
+.recall-kr-badge.ng { background: var(--danger-light); color: var(--danger); }
+.recall-kr-badge.none { background: var(--border); color: var(--text-tertiary); }
+
+/* 入力ガイド */
+.input-guide {
+  background: var(--info-light);
+  border-left: 3px solid #4A7AB5;
+  border-radius: var(--radius-sm);
+  padding: 9px 12px;
+  font-size: 11px;
+  color: var(--info);
+  line-height: 1.7;
+  margin-bottom: 10px;
+}
+.input-guide-title { font-weight: 500; margin-bottom: 3px; }
+.optional-tag {
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--text-tertiary);
+  background: var(--bg);
+  border: 1px solid var(--border-mid);
+  border-radius: 8px;
+  padding: 1px 7px;
+  margin-left: 6px;
+}
+
 /* ===== SBIAステップバッジ ===== */
 .sbia-step {
   display: inline-flex;
@@ -475,28 +578,6 @@ textarea.input-ok { border-color: var(--accent-mid); }
   align-items: center;
   margin-bottom: 3px;
 }
-
-/* ===== 四半期自己評価サマリーカード ===== */
-.q-summary-card {
-  background: var(--info-light);
-  border: 1px solid #C4D8F0;
-  border-radius: var(--radius-md);
-  padding: 12px 14px;
-  margin-bottom: 14px;
-  font-size: 12px;
-  color: var(--info);
-  line-height: 1.8;
-}
-.q-summary-card-title {
-  font-size: 10px;
-  font-weight: 500;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: #4A7AB5;
-  margin-bottom: 6px;
-}
-.q-summary-item { display: flex; align-items: center; gap: 6px; margin-bottom: 2px; }
-.q-summary-item .qt-badge { width: 18px; height: 18px; font-size: 10px; }
 
 /* ===== コピペ警告 ===== */
 .copypaste-warn {
@@ -832,7 +913,6 @@ textarea.input-ok { border-color: var(--accent-mid); }
   .btn-group { grid-template-columns: 1fr; }
   .sg-grid { grid-template-columns: 1fr; }
   .flash-val-select { grid-template-columns: 1fr; }
-  .quarter-timeline { grid-template-columns: repeat(3, 1fr); }
 }
 
 @media print {
@@ -1221,16 +1301,24 @@ textarea.input-ok { border-color: var(--accent-mid); }
         <button class="lock-unlock-btn" onclick="openLockModal('quarter','unlock')">解除する</button>
       </div>
 
-      <!-- 四半期サマリー -->
+      <!-- 四半期サマリー（自己評価の推移） -->
       <div class="quarter-summary" id="quarterSummary">
         <div class="quarter-summary-title">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="3" width="12" height="10" rx="1.5" stroke="var(--accent)" stroke-width="1.2"/><path d="M4 1v4M10 1v4M1 7h12" stroke="var(--accent)" stroke-width="1.2" stroke-linecap="round"/></svg>
-          この四半期の月次ふりかえりサマリー
+          この四半期の自己評価の推移
         </div>
         <div id="quarterSummaryContent"><div class="qt-no-data">月次データを読み込み中...</div></div>
       </div>
 
-      <p class="section-label">バリュー評価　四半期まとめ</p>
+      <!-- バリュー原文ふりかえり -->
+      <p class="section-label">バリュー原文ふりかえり　月次まとめの記述</p>
+      <div id="recallValues"><div class="qt-no-data">読み込み中...</div></div>
+
+      <!-- 目標管理原文ふりかえり -->
+      <p class="section-label" style="margin-top:16px">目標管理　原文ふりかえり</p>
+      <div id="recallGoals"><div class="qt-no-data">読み込み中...</div></div>
+
+      <p class="section-label" style="margin-top:16px">バリュー評価　四半期まとめ</p>
       <div class="card">
         <div class="card-title">四半期バリュー評価</div>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
@@ -1262,6 +1350,16 @@ textarea.input-ok { border-color: var(--accent-mid); }
             <input type="hidden" id="q_v6eval">
           </div>
         </div>
+
+        <label style="margin-top:14px">この評価をつけた理由<span class="optional-tag">任意</span></label>
+        <div class="input-guide">
+          <div class="input-guide-title">月次評価と四半期評価が違う場合は、その判断を書き残してください</div>
+          例：4月B・5月B・6月Aだったが、6月の発揮は一時的ではなく定着したと判断しAとした
+        </div>
+        <div class="textarea-wrap">
+          <textarea id="q_value_reason" rows="3" placeholder="3ヶ月の月次評価を踏まえ、なぜこの四半期評価にしたのかを書いてください" oninput="markDirty('quarter');updateCharCount(this)"></textarea>
+          <div class="char-count" id="cc_q_value_reason">0文字</div>
+        </div>
       </div>
 
       <p class="section-label">目標管理　四半期達成率（直接入力）</p>
@@ -1292,21 +1390,25 @@ textarea.input-ok { border-color: var(--accent-mid); }
         <div style="font-size:11px;color:var(--text-tertiary)">小数点第2位まで入力可能（例：83.33）</div>
       </div>
 
-      <p class="section-label">総合レビュー</p>
-      <!-- 自己評価サマリーカード -->
-      <div class="q-summary-card" id="qSummaryCard" style="display:none">
-        <div class="q-summary-card-title">この四半期の自己評価　まとめ</div>
-        <div id="qSummaryCardContent"></div>
-      </div>
+      <p class="section-label">達成率の自己評価根拠</p>
       <div class="card">
-        <label>四半期総合コメント</label>
+        <div class="input-guide">
+          <div class="input-guide-title">なぜその達成率にしたのかを、KRの進捗をもとに説明してください</div>
+          ① 各KRがどこまで到達したか（達成／未達／何割程度か）<br>
+          ② その積み上げから、なぜこの％になるのか<br>
+          ③ 未達のKRがある場合、何が要因だったか<br>
+          <span style="opacity:0.85">「上の原文ふりかえりでKRの月次進捗を確認できます」</span>
+        </div>
         <div class="textarea-wrap">
-          <textarea id="q_comment" rows="3" placeholder="バリュー評価・目標管理を踏まえ、この四半期の総合的な振り返りを書いてください" oninput="markDirty('quarter');updateCharCount(this)"></textarea>
+          <textarea id="q_comment" rows="5" placeholder="例：目標①のKR1（新規5件）は4件で80%、KR2（研修完了）は達成。2つの平均で90%と判断した。KR1未達の要因は、3月に着手予定だった訪問が繁忙で2週間遅れたこと。" oninput="markDirty('quarter');updateCharCount(this)"></textarea>
           <div class="char-count" id="cc_q_comment">0文字</div>
         </div>
-        <label style="margin-top:4px">次の四半期への意図</label>
+      </div>
+
+      <p class="section-label">次の四半期の目標</p>
+      <div class="card">
         <div class="textarea-wrap">
-          <textarea id="q_intent" rows="2" placeholder="次の3ヶ月で特に意識することを書いてください" oninput="markDirty('quarter');updateCharCount(this)"></textarea>
+          <textarea id="q_intent" rows="3" placeholder="この四半期の結果を踏まえ、次の3ヶ月で達成する目標を書いてください" oninput="markDirty('quarter');updateCharCount(this)"></textarea>
           <div class="char-count" id="cc_q_intent">0文字</div>
         </div>
       </div>
@@ -1666,62 +1768,145 @@ function applyLift() {
   closeLiftModal();
 }
 
-// ===== 四半期自己評価サマリーカード =====
-function renderQSummaryCard(quarterMonthlyResults) {
-  const card = document.getElementById('qSummaryCard');
-  const content = document.getElementById('qSummaryCardContent');
-  if(!card || !content) return;
+// ===== 原文ふりかえり（バリューSBIA・目標コメント） =====
+function escapeHtml(s) {
+  return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
 
-  const vMap = [
-    { key:'v2', label:'②期待を超える', evalKey:'バリュー②自己評価' },
-    { key:'v4', label:'④自分を律し', evalKey:'バリュー④自己評価' },
-    { key:'v6', label:'⑥発信・対話',  evalKey:'バリュー⑥自己評価' }
+// 目標コメントが構造化形式（【原因】【対策】【期日】）ならタグ付きHTMLに整形する
+function formatGoalCommentHtml(text) {
+  const raw = String(text||'').trim();
+  if(!raw) return '<span class="recall-item-text blank">（未記入）</span>';
+  const m = raw.match(/【原因】([\s\S]*?)【対策】([\s\S]*?)【期日】([\s\S]*)$/);
+  if(m) {
+    const parts = [
+      { tag:'原因', val:m[1].trim() },
+      { tag:'対策', val:m[2].trim() },
+      { tag:'期日', val:m[3].trim() }
+    ];
+    return parts.map(p =>
+      `<div style="margin-bottom:3px"><span class="recall-struct-tag">${p.tag}</span><span class="recall-item-text">${escapeHtml(p.val)||'（未記入）'}</span></div>`
+    ).join('');
+  }
+  return `<span class="recall-item-text">${escapeHtml(raw)}</span>`;
+}
+
+// バリュー原文ふりかえり（バリュー単位のアコーディオン、開くと3ヶ月が縦に並ぶ）
+function renderRecallValues(months, results) {
+  const wrap = document.getElementById('recallValues');
+  if(!wrap) return;
+  const vList = [
+    { num:'②', label:'②期待を超える' },
+    { num:'④', label:'④自分を律し、責任を持つ' },
+    { num:'⑥', label:'⑥ためらわず発信し、対話で前に進む' }
   ];
-  const order = {'A':3,'B':2,'C':1,'':0};
+  const sbiaKeys = [
+    { k:'S', label:'S', cls:'' },
+    { k:'B', label:'B', cls:'' },
+    { k:'I', label:'I', cls:'i' },
+    { k:'A', label:'A', cls:'a' }
+  ];
   let html = '';
-  let hasAny = false;
-
-  vMap.forEach(v => {
-    const vals = quarterMonthlyResults.map(r => r?.data ? (r.data[v.evalKey]||'') : '');
-    if(vals.every(val=>!val)) return;
-    hasAny = true;
-    const filled = vals.filter(Boolean);
-    const avg = filled.length ? filled.reduce((a,c)=>a+order[c],0)/filled.length : 0;
-    const first = vals.find(val=>val);
-    const last = [...vals].reverse().find(val=>val);
-    let trend = '';
-    if(first && last) {
-      if(order[last] > order[first]) trend = '<span style="color:var(--accent);font-size:10px;font-weight:500">↑ 改善傾向</span>';
-      else if(order[last] < order[first]) trend = '<span style="color:var(--danger);font-size:10px;font-weight:500">↓ 要注意</span>';
-      else trend = '<span style="color:var(--text-tertiary);font-size:10px">→ 横ばい</span>';
-    }
-    const badgesHtml = vals.map(val => {
-      const cls = val || 'none';
-      return `<span class="qt-badge ${cls}">${val||'－'}</span>`;
-    }).join('<span style="color:var(--text-tertiary);font-size:10px;margin:0 2px">→</span>');
-
-    // ひとこと文
-    let comment = '';
-    if(avg >= 3) comment = '安定してAを発揮しています。この四半期の強みとして言語化しましょう。';
-    else if(avg >= 2) comment = 'Bが中心です。どの場面で発揮できなかったか振り返ると次につながります。';
-    else if(avg > 0) comment = 'C評価が目立ちます。行動の機会をつくることから始めてみましょう。';
-
-    html += `<div class="q-summary-item" style="flex-direction:column;align-items:flex-start;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid rgba(26,63,107,0.1)">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
-        <span style="font-size:11px;font-weight:500;min-width:80px">${v.label}</span>
-        <div style="display:flex;align-items:center;gap:3px">${badgesHtml}</div>
-        ${trend}
+  vList.forEach((v, vi) => {
+    // 記入済みの月数をカウント
+    let filledMonths = 0;
+    months.forEach((ym, i) => {
+      const d = results[i]?.data;
+      if(d && sbiaKeys.some(s => String(d[`バリュー${v.num}${s.k}`]||'').trim())) filledMonths++;
+    });
+    let body = '';
+    months.forEach((ym, i) => {
+      const d = results[i]?.data;
+      const mo = parseInt(ym.split('-')[1]);
+      const ev = d ? (d[`バリュー${v.num}自己評価`]||'') : '';
+      const hasText = d && sbiaKeys.some(s => String(d[`バリュー${v.num}${s.k}`]||'').trim());
+      body += `<div class="recall-month">
+        <div class="recall-month-hd">
+          <span class="recall-month-label">${mo}月</span>
+          <span class="qt-badge ${ev||'none'}" style="width:18px;height:18px;font-size:10px">${ev||'－'}</span>
+        </div>`;
+      if(!hasText) {
+        body += '<div class="recall-empty">記入なし</div>';
+      } else {
+        body += '<div class="recall-sbia">';
+        sbiaKeys.forEach(s => {
+          const val = String(d[`バリュー${v.num}${s.k}`]||'').trim();
+          body += `<div class="recall-item">
+            <span class="recall-item-key ${s.cls}">${s.label}</span>
+            <span class="recall-item-text${val?'':' blank'}">${val?escapeHtml(val):'（未記入）'}</span>
+          </div>`;
+        });
+        body += '</div>';
+      }
+      body += '</div>';
+    });
+    html += `<div class="recall-block">
+      <div class="recall-hd" onclick="toggleRecall(this)">
+        <div class="recall-hd-left"><span class="recall-hd-title">${v.label}</span></div>
+        <div class="recall-hd-right">
+          <span style="font-size:10px;color:var(--text-tertiary)">${filledMonths}/${months.length}ヶ月</span>
+          <span class="recall-arrow">▼</span>
+        </div>
       </div>
-      ${comment ? `<div style="font-size:11px;color:var(--info);opacity:0.85">${comment}</div>` : ''}
+      <div class="recall-bd">${body}</div>
     </div>`;
   });
+  wrap.innerHTML = html;
+}
 
-  if(hasAny) {
-    content.innerHTML = html;
-    card.style.display = 'block';
-  } else {
-    card.style.display = 'none';
+// 目標管理の原文ふりかえり（目標単位のアコーディオン、KR進捗＋コメント原文）
+function renderRecallGoals(months, results) {
+  const wrap = document.getElementById('recallGoals');
+  if(!wrap) return;
+  const numMap = {1:'①', 2:'②', 3:'③'};
+  let html = '';
+  for(let i=1;i<=3;i++){
+    const n = numMap[i];
+    // 期初設定の通期目標をタイトルに使う（未設定なら「目標i」）
+    const objRaw = document.getElementById(`g${i}_通期`)?.value || '';
+    const title = objRaw ? `目標${i}　${objRaw.substring(0,24)}${objRaw.length>24?'…':''}` : `目標${i}`;
+    let filledMonths = 0;
+    months.forEach((ym, mi) => {
+      const d = results[mi]?.data;
+      if(d && String(d[`目標${n}コメント`]||'').trim()) filledMonths++;
+    });
+    let body = '';
+    months.forEach((ym, mi) => {
+      const d = results[mi]?.data;
+      const mo = parseInt(ym.split('-')[1]);
+      const comment = d ? String(d[`目標${n}コメント`]||'').trim() : '';
+      // KR進捗のバッジ
+      let krHtml = '';
+      if(d) {
+        const progLabel = {ok:'○ 順調', warn:'△ やや遅れ', ng:'✕ 遅れ'};
+        [1,2,3].forEach(k => {
+          const p = String(d[`目標${n}KR${k}進捗`]||'').trim();
+          if(p) krHtml += `<span class="recall-kr-badge ${p}">KR${k}　${progLabel[p]||p}</span>`;
+        });
+      }
+      body += `<div class="recall-month">
+        <div class="recall-month-hd"><span class="recall-month-label">${mo}月</span></div>
+        ${krHtml?`<div class="recall-kr-row">${krHtml}</div>`:''}
+        ${comment ? formatGoalCommentHtml(comment) : '<div class="recall-empty">記入なし</div>'}
+      </div>`;
+    });
+    html += `<div class="recall-block">
+      <div class="recall-hd" onclick="toggleRecall(this)">
+        <div class="recall-hd-left"><span class="recall-hd-title">${escapeHtml(title)}</span></div>
+        <div class="recall-hd-right">
+          <span style="font-size:10px;color:var(--text-tertiary)">${filledMonths}/${months.length}ヶ月</span>
+          <span class="recall-arrow">▼</span>
+        </div>
+      </div>
+      <div class="recall-bd">${body}</div>
+    </div>`;
   }
+  wrap.innerHTML = html;
+}
+
+function toggleRecall(hd) {
+  hd.classList.toggle('open');
+  hd.nextElementSibling.classList.toggle('open');
 }
 
 // ===== コピペ防止チェック =====
@@ -1900,6 +2085,10 @@ async function loadDiffHighlight(userId, term) {
 async function renderQuarterSummary(quarter) {
   const content = document.getElementById('quarterSummaryContent');
   content.innerHTML = '<div class="qt-no-data">読み込み中...</div>';
+  const recallV = document.getElementById('recallValues');
+  const recallG = document.getElementById('recallGoals');
+  if(recallV) recallV.innerHTML = '<div class="qt-no-data">読み込み中...</div>';
+  if(recallG) recallG.innerHTML = '<div class="qt-no-data">読み込み中...</div>';
   // 四半期の月リストを取得
   const months = getQuarterMonths(quarter);
   if(!months.length) { content.innerHTML = '<div class="qt-no-data">対象月が取得できませんでした</div>'; return; }
@@ -1907,53 +2096,53 @@ async function renderQuarterSummary(quarter) {
     const promises = months.map(ym => gasCall({action:'getMonthly', userId:currentUser, yearMonth:ym}));
     const results = await Promise.all(promises);
     const vMap = [
-      { key:'v2', label:'②期待' },
-      { key:'v4', label:'④自律' },
-      { key:'v6', label:'⑥発信' }
+      { key:'v2', num:'②', label:'②期待' },
+      { key:'v4', num:'④', label:'④自律' },
+      { key:'v6', num:'⑥', label:'⑥発信' }
     ];
-    // タイムライン表示
-    let timelineHtml = '<div class="quarter-timeline">';
-    months.forEach((ym, i) => {
-      const d = results[i]?.data || null;
-      const mo = parseInt(ym.split('-')[1]);
-      timelineHtml += `<div class="qt-month"><div class="qt-month-label">${mo}月</div><div class="qt-val-row">`;
-      vMap.forEach(v => {
-        const evalKey = 'バリュー' + (v.key==='v2'?'②':v.key==='v4'?'④':'⑥') + '自己評価';
-        const val = d ? (d[evalKey]||'') : '';
-        const badgeCls = val ? val : 'none';
-        const badgeText = val || '－';
-        timelineHtml += `<div class="qt-val-item"><span class="qt-val-name">${v.label}</span><span class="qt-badge ${badgeCls}">${badgeText}</span></div>`;
-      });
-      timelineHtml += '</div></div>';
-    });
-    timelineHtml += '</div>';
+    // 月ラベル（4月 5月 6月）
+    const monthLabels = months.map(ym => parseInt(ym.split('-')[1]) + '月');
+    let headerHtml = `<div class="qt-trend" style="background:transparent;padding-bottom:2px">
+      <span class="qt-trend-label"></span>
+      <div class="qt-trend-badges">${monthLabels.map((l,i)=>
+        (i>0?'<span class="qt-trend-arrow" style="visibility:hidden">→</span>':'') +
+        `<span style="font-size:10px;color:var(--text-tertiary);width:20px;text-align:center">${l}</span>`
+      ).join('')}</div>
+    </div>`;
 
-    // トレンド表示
+    // トレンド表示（自己評価の推移のみ／月別グリッドは廃止）
     let trendHtml = '';
+    let hasAny = false;
     vMap.forEach(v => {
-      const evalKey = 'バリュー' + (v.key==='v2'?'②':v.key==='v4'?'④':'⑥') + '自己評価';
+      const evalKey = 'バリュー' + v.num + '自己評価';
       const vals = results.map(r => r?.data ? (r.data[evalKey]||'') : '');
-      if(vals.every(v=>!v)) return;
+      if(vals.every(x=>!x)) return;
+      hasAny = true;
       trendHtml += `<div class="qt-trend"><span class="qt-trend-label">${v.label}</span><div class="qt-trend-badges">`;
       vals.forEach((val, i) => {
         if(i>0) trendHtml += '<span class="qt-trend-arrow">→</span>';
         const cls = val ? val : 'none';
         trendHtml += `<span class="qt-badge ${cls}">${val||'－'}</span>`;
       });
-      // 改善判定
       const order = {'A':3,'B':2,'C':1,'':0};
-      const first = vals.find(v=>v);
-      const last = [...vals].reverse().find(v=>v);
+      const first = vals.find(x=>x);
+      const last = [...vals].reverse().find(x=>x);
       if(first && last && order[last] > order[first]) trendHtml += '<span style="font-size:10px;color:var(--accent);margin-left:4px;font-weight:500">↑ 改善</span>';
       else if(first && last && order[last] < order[first]) trendHtml += '<span style="font-size:10px;color:var(--danger);margin-left:4px;font-weight:500">↓ 注意</span>';
       trendHtml += '</div></div>';
     });
 
-    content.innerHTML = timelineHtml + (trendHtml ? '<div style="margin-top:8px">' + trendHtml + '</div>' : '');
-    // 自己評価サマリーカードも描画
-    renderQSummaryCard(results);
+    content.innerHTML = hasAny
+      ? (headerHtml + trendHtml)
+      : '<div class="qt-no-data">この四半期の月次まとめはまだ記入されていません</div>';
+
+    // 原文ふりかえりを描画（同じ取得結果を再利用するため通信は増えない）
+    renderRecallValues(months, results);
+    renderRecallGoals(months, results);
   } catch(e) {
     content.innerHTML = '<div class="qt-no-data">データの読み込みに失敗しました</div>';
+    if(recallV) recallV.innerHTML = '<div class="qt-no-data">読み込みに失敗しました</div>';
+    if(recallG) recallG.innerHTML = '<div class="qt-no-data">読み込みに失敗しました</div>';
   }
 }
 
@@ -2652,7 +2841,6 @@ async function gasPost(data) {
 async function loadKisho() {
   try {
     const result = await gasCall({action:'getKisho', userId:currentUser});
-    applyLockUI('kisho', result.lock || {locked:false});
     if(result.success && result.data) {
       const d = result.data;
       const numMap = {1:'①', 2:'②', 3:'③'};
@@ -2689,6 +2877,8 @@ async function loadKisho() {
         }
       }
     }
+    // KR2・KR3など動的生成された入力欄も含めて、全てのDOM構築が終わってからロック状態を反映する
+    applyLockUI('kisho', result.lock || {locked:false});
   } catch(e) { console.error(e); }
 }
 
@@ -2863,7 +3053,7 @@ async function loadQuarter(q) {
     const el=document.getElementById(id); if(el) el.value='';
     document.querySelectorAll(`[onclick*="${id}"]`).forEach(b=>b.classList.remove('selA','selB','selC'));
   });
-  setVal('q_comment',''); setVal('q_intent','');
+  setValForce('q_comment',''); setValForce('q_intent',''); setValForce('q_value_reason','');
   try {
     const result = await gasCall({action:'getQuarter', userId:currentUser, quarter:q});
     applyLockUI('quarter', result.lock || {locked:false});
@@ -2872,6 +3062,7 @@ async function loadQuarter(q) {
       setABCVal('q_v2eval', d['バリュー②四半期評価']||'');
       setABCVal('q_v4eval', d['バリュー④四半期評価']||'');
       setABCVal('q_v6eval', d['バリュー⑥四半期評価']||'');
+      setVal('q_value_reason', d['バリュー判断根拠']||'');
       setVal('q_comment', d['四半期総合コメント']||'');
       setVal('q_intent', d['次四半期への意図']||'');
       const qNumMap = {1:'①', 2:'②', 3:'③'};
@@ -2882,7 +3073,7 @@ async function loadQuarter(q) {
       }
       const ts = d['最終更新日時']||'';
       document.getElementById('quarterTimestamp').textContent = ts ? `最終更新：${ts}` : '';
-      ['q_comment','q_intent'].forEach(id=>{ const el=document.getElementById(id); if(el&&el.value) updateCharCount(el); });
+      ['q_comment','q_intent','q_value_reason'].forEach(id=>{ const el=document.getElementById(id); if(el&&el.value) updateCharCount(el); });
     }
   } catch(e) { console.error(e); }
 }
@@ -2892,6 +3083,7 @@ async function saveQuarter() {
   const data = {
     action:'saveQuarter', userId:currentUser, name:m.name, quarter:currentQuarter,
     v2eval:getVal('q_v2eval'), v4eval:getVal('q_v4eval'), v6eval:getVal('q_v6eval'),
+    valueReason:getVal('q_value_reason'),
     totalComment:getVal('q_comment'), nextIntent:getVal('q_intent'),
     g1rate:document.getElementById('q_g1rate')?.value||'',
     g2rate:document.getElementById('q_g2rate')?.value||'',
