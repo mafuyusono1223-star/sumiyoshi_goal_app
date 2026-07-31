@@ -546,6 +546,168 @@ textarea.input-ok { border-color: var(--accent-mid); }
   margin-bottom: 10px;
 }
 .input-guide-title { font-weight: 500; margin-bottom: 3px; }
+
+/* ===== 原文参照ボトムシート ===== */
+/* 背景スクロール固定はボトムシート時のみ（サイドパネル時は本文を操作できるようにする） */
+@media (max-width: 1199px) {
+  body.sheet-open { overflow: hidden; }
+}
+.recall-sheet {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 650;
+}
+.recall-sheet.show { display: block; }
+.recall-sheet-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+}
+.recall-sheet-body {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 52vh;
+  max-width: 800px;
+  margin: 0 auto;
+  background: var(--surface);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  box-shadow: 0 -8px 32px rgba(0,0,0,0.18);
+  display: flex;
+  flex-direction: column;
+  animation: sheetUp 0.22s ease;
+}
+@keyframes sheetUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+@keyframes panelIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+
+/* ===== 1200px以上：右サイドパネル方式 ===== */
+/* 本文800px＋パネル400px＝1200px。本文を縮めずに左へ寄せて共存させる */
+@media (min-width: 1200px) {
+  /* 本文の表示領域を右パネル分だけ狭める（.mainのmargin:0 autoが自動で左寄せに働く） */
+  body.sheet-open { padding-right: 400px; }
+  /* フローティング保存ボタンはviewport基準のため、パネル幅の半分だけ左へずらす */
+  body.sheet-open .floating-save { margin-left: -200px; }
+
+  /* シートのラッパーを右側400pxのみに限定（本文側のクリックを妨げない） */
+  .recall-sheet { left: auto; right: 0; width: 400px; }
+  .recall-sheet-backdrop { display: none; }
+  .recall-sheet-body {
+    top: 0;
+    bottom: 0;
+    height: 100vh;
+    width: 400px;
+    max-width: 400px;
+    margin: 0;
+    border-radius: 0;
+    border-left: 1px solid var(--border);
+    box-shadow: -4px 0 24px rgba(0,0,0,0.10);
+    animation: panelIn 0.22s ease;
+  }
+}
+.recall-sheet-hd {
+  padding: 12px 16px 0;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.recall-sheet-hd-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.recall-sheet-title { font-size: 13px; font-weight: 500; }
+.recall-sheet-close {
+  background: none;
+  border: none;
+  font-size: 20px;
+  line-height: 1;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  padding: 0 4px;
+}
+.recall-sheet-tabs { display: flex; gap: 4px; }
+.recall-sheet-tab {
+  padding: 7px 14px;
+  font-size: 12px;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+}
+.recall-sheet-tab.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 500; }
+.recall-sheet-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px 16px 24px;
+  -webkit-overflow-scrolling: touch;
+}
+.recall-sheet-pane { display: none; }
+.recall-sheet-pane.active { display: block; }
+
+/* 原文を見るボタン */
+.recall-open-btn {
+  background: var(--surface);
+  border: 1px solid var(--border-mid);
+  color: var(--text-secondary);
+  border-radius: var(--radius-sm);
+  padding: 5px 12px;
+  font-size: 11px;
+  font-family: 'Noto Sans JP', sans-serif;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+}
+.recall-open-btn:hover { border-color: var(--accent); color: var(--accent); }
+.label-with-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+.label-with-btn label { margin-bottom: 0; }
+
+/* 期初設定の目標・KR原文（シート内上部の固定情報） */
+.recall-goal-def {
+  background: var(--accent-light);
+  border: 1px solid #A3C4B0;
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  margin-bottom: 12px;
+}
+.recall-goal-def-row { display: flex; gap: 8px; align-items: flex-start; margin-bottom: 6px; }
+.recall-goal-def-row:last-child { margin-bottom: 0; }
+.recall-goal-def-key {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--accent);
+  background: var(--surface);
+  border-radius: 3px;
+  padding: 2px 6px;
+  flex-shrink: 0;
+  min-width: 38px;
+  text-align: center;
+  margin-top: 1px;
+}
+.recall-goal-def-text {
+  font-size: 12px;
+  color: var(--text-primary);
+  line-height: 1.7;
+  white-space: pre-wrap;
+  word-break: break-word;
+  flex: 1;
+}
+.recall-goal-def-text.blank { color: var(--text-tertiary); }
+.recall-section-divider {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: var(--text-tertiary);
+  margin: 14px 0 8px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--border);
+}
 .optional-tag {
   font-size: 10px;
   font-weight: 400;
@@ -1016,6 +1178,31 @@ textarea.input-ok { border-color: var(--accent-mid); }
   </div>
 </div>
 
+<!-- 原文参照ボトムシート -->
+<div class="recall-sheet" id="recallSheet">
+  <div class="recall-sheet-backdrop" onclick="closeRecallSheet()"></div>
+  <div class="recall-sheet-body">
+    <div class="recall-sheet-hd">
+      <div class="recall-sheet-hd-top">
+        <div class="recall-sheet-title" id="recallSheetTitle">月次まとめの原文</div>
+        <button class="recall-sheet-close" onclick="closeRecallSheet()">×</button>
+      </div>
+      <div class="recall-sheet-tabs">
+        <div class="recall-sheet-tab active" id="recallTab-values" onclick="switchRecallTab('values')">バリュー原文</div>
+        <div class="recall-sheet-tab" id="recallTab-goals" onclick="switchRecallTab('goals')">目標管理原文</div>
+      </div>
+    </div>
+    <div class="recall-sheet-content">
+      <div class="recall-sheet-pane active" id="recallPane-values">
+        <div id="recallValues"><div class="qt-no-data">読み込み中...</div></div>
+      </div>
+      <div class="recall-sheet-pane" id="recallPane-goals">
+        <div id="recallGoals"><div class="qt-no-data">読み込み中...</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- SELECT SCREEN -->
 <div id="selectScreen">
   <div class="select-screen">
@@ -1310,15 +1497,11 @@ textarea.input-ok { border-color: var(--accent-mid); }
         <div id="quarterSummaryContent"><div class="qt-no-data">月次データを読み込み中...</div></div>
       </div>
 
-      <!-- バリュー原文ふりかえり -->
-      <p class="section-label">バリュー原文ふりかえり　月次まとめの記述</p>
-      <div id="recallValues"><div class="qt-no-data">読み込み中...</div></div>
+      <div style="display:flex;justify-content:flex-end;margin-bottom:16px">
+        <button class="recall-open-btn" onclick="openRecallSheet('values')">📄 月次まとめの原文を見る</button>
+      </div>
 
-      <!-- 目標管理原文ふりかえり -->
-      <p class="section-label" style="margin-top:16px">目標管理　原文ふりかえり</p>
-      <div id="recallGoals"><div class="qt-no-data">読み込み中...</div></div>
-
-      <p class="section-label" style="margin-top:16px">バリュー評価　四半期まとめ</p>
+      <p class="section-label">バリュー評価　四半期まとめ</p>
       <div class="card">
         <div class="card-title">四半期バリュー評価</div>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
@@ -1351,10 +1534,9 @@ textarea.input-ok { border-color: var(--accent-mid); }
           </div>
         </div>
 
-        <label style="margin-top:14px">この評価をつけた理由<span class="optional-tag">任意</span></label>
-        <div class="input-guide">
-          <div class="input-guide-title">月次評価と四半期評価が違う場合は、その判断を書き残してください</div>
-          例：4月B・5月B・6月Aだったが、6月の発揮は一時的ではなく定着したと判断しAとした
+        <div class="label-with-btn" style="margin-top:14px">
+          <label>この評価をつけた理由<span class="optional-tag">任意</span><span class="tip-wrap"><i class="tip-icon">?</i><div class="tooltip" style="min-width:260px;max-width:320px"><div style="font-weight:500;margin-bottom:5px">バリュー評価の基準</div><div class="tip-li" style="margin-bottom:5px"><strong>A</strong>：安定発揮。状況に応じ、意図を持って発揮。等級に応じた質が見られた</div><div class="tip-li" style="margin-bottom:5px"><strong>B</strong>：部分発揮。発揮している場面とそうでない場面が混在。行動の質にムラ</div><div class="tip-li"><strong>C</strong>：発揮が見られない。発揮しようとする姿勢がなかった。バリューとずれた方向性</div></div></span></label>
+          <button class="recall-open-btn" onclick="openRecallSheet('values')">📄 原文を見る</button>
         </div>
         <div class="textarea-wrap">
           <textarea id="q_value_reason" rows="3" placeholder="3ヶ月の月次評価を踏まえ、なぜこの四半期評価にしたのかを書いてください" oninput="markDirty('quarter');updateCharCount(this)"></textarea>
@@ -1394,10 +1576,12 @@ textarea.input-ok { border-color: var(--accent-mid); }
       <div class="card">
         <div class="input-guide">
           <div class="input-guide-title">なぜその達成率にしたのかを、KRの進捗をもとに説明してください</div>
-          ① 各KRがどこまで到達したか（達成／未達／何割程度か）<br>
-          ② その積み上げから、なぜこの％になるのか<br>
-          ③ 未達のKRがある場合、何が要因だったか<br>
-          <span style="opacity:0.85">「上の原文ふりかえりでKRの月次進捗を確認できます」</span>
+          1Q・2Q　→　<strong>半期目標</strong>に対する進捗率<br>
+          3Q・4Q　→　<strong>通期目標</strong>に対する進捗率
+        </div>
+        <div class="label-with-btn">
+          <label style="color:var(--text-tertiary);font-size:11px">目標・KR・月次の記述を参照できます</label>
+          <button class="recall-open-btn" onclick="openRecallSheet('goals')">📄 目標とKRの原文を見る</button>
         </div>
         <div class="textarea-wrap">
           <textarea id="q_comment" rows="5" placeholder="例：目標①のKR1（新規5件）は4件で80%、KR2（研修完了）は達成。2つの平均で90%と判断した。KR1未達の要因は、3月に着手予定だった訪問が繁忙で2週間遅れたこと。" oninput="markDirty('quarter');updateCharCount(this)"></textarea>
@@ -1768,6 +1952,36 @@ function applyLift() {
   closeLiftModal();
 }
 
+// ===== 原文参照ボトムシート =====
+function openRecallSheet(tab) {
+  const sheet = document.getElementById('recallSheet');
+  if(!sheet) return;
+  switchRecallTab(tab || 'values');
+  sheet.classList.add('show');
+  document.body.classList.add('sheet-open'); // 背景スクロールを固定
+}
+
+function closeRecallSheet() {
+  const sheet = document.getElementById('recallSheet');
+  if(!sheet) return;
+  sheet.classList.remove('show');
+  document.body.classList.remove('sheet-open');
+}
+
+function switchRecallTab(tab) {
+  ['values','goals'].forEach(t => {
+    const tabEl = document.getElementById('recallTab-' + t);
+    const paneEl = document.getElementById('recallPane-' + t);
+    if(tabEl) tabEl.classList.toggle('active', t === tab);
+    if(paneEl) paneEl.classList.toggle('active', t === tab);
+  });
+  const title = document.getElementById('recallSheetTitle');
+  if(title) title.textContent = tab === 'goals' ? '目標管理の原文' : 'バリューの原文';
+  // 切り替え時はスクロール位置を先頭に戻す
+  const content = document.querySelector('.recall-sheet-content');
+  if(content) content.scrollTop = 0;
+}
+
 // ===== 原文ふりかえり（バリューSBIA・目標コメント） =====
 function escapeHtml(s) {
   return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -1871,6 +2085,23 @@ function renderRecallGoals(months, results) {
       if(d && String(d[`目標${n}コメント`]||'').trim()) filledMonths++;
     });
     let body = '';
+    // ▼ 上部：期初設定の目標・KR原文（月に関係なく一度だけ表示）
+    const zenki = document.getElementById(`g${i}_通期`)?.value.trim() || '';
+    const hanki = document.getElementById(`g${i}_半期`)?.value.trim() || '';
+    const krs = getKRs('kr'+i);
+    let defHtml = '<div class="recall-goal-def">';
+    defHtml += `<div class="recall-goal-def-row"><span class="recall-goal-def-key">通期</span><span class="recall-goal-def-text${zenki?'':' blank'}">${zenki?escapeHtml(zenki):'（未設定）'}</span></div>`;
+    defHtml += `<div class="recall-goal-def-row"><span class="recall-goal-def-key">半期</span><span class="recall-goal-def-text${hanki?'':' blank'}">${hanki?escapeHtml(hanki):'（未設定）'}</span></div>`;
+    krs.forEach((kr, ki) => {
+      if(!kr) return;
+      defHtml += `<div class="recall-goal-def-row"><span class="recall-goal-def-key">KR${ki+1}</span><span class="recall-goal-def-text">${escapeHtml(kr)}</span></div>`;
+    });
+    if(krs.every(k=>!k)) {
+      defHtml += '<div class="recall-goal-def-row"><span class="recall-goal-def-key">KR</span><span class="recall-goal-def-text blank">（未設定）</span></div>';
+    }
+    defHtml += '</div>';
+    body += defHtml;
+    body += '<div class="recall-section-divider">月次の記録</div>';
     months.forEach((ym, mi) => {
       const d = results[mi]?.data;
       const mo = parseInt(ym.split('-')[1]);
@@ -2602,6 +2833,7 @@ function selectUser(key) {
 }
 
 function changeUser() {
+  closeRecallSheet();
   currentUser = null;
   document.getElementById('selectScreen').style.display = 'block';
   document.getElementById('appMain').style.display = 'none';
@@ -2623,6 +2855,7 @@ function showTab(name) {
   if(name === 'flash') { renderFlashMonthTabs(); loadFlash(); }
   if(name === 'monthly') { renderMonthlyGoals(currentMonth); loadMonthly(currentMonth); checkEvaluatorComment(); }
   if(name === 'quarter') { loadQuarter(currentQuarter); renderQuarterSummary(currentQuarter); }
+  else { closeRecallSheet(); } // 他タブへ移動したら原文シートを閉じる
   if(name === 'admin') { document.getElementById('pwScreen').style.display='flex'; document.getElementById('dashScreen').style.display='none'; }
   if(name === 'hyoka') initHyokaTab();
 
