@@ -28,6 +28,7 @@
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 16px;
+  --recall-panel-w: 400px;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: var(--text-primary); font-size: 14px; line-height: 1.6; min-height: 100vh; }
@@ -559,6 +560,7 @@ textarea.input-ok { border-color: var(--accent-mid); }
   z-index: 650;
 }
 .recall-sheet.show { display: block; }
+.recall-resizer { display: none; }
 .recall-sheet-backdrop {
   position: absolute;
   inset: 0;
@@ -584,25 +586,54 @@ textarea.input-ok { border-color: var(--accent-mid); }
 /* 本文800px＋パネル400px＝1200px。本文を縮めずに左へ寄せて共存させる */
 @media (min-width: 1200px) {
   /* 本文の表示領域を右パネル分だけ狭める（.mainのmargin:0 autoが自動で左寄せに働く） */
-  body.sheet-open { padding-right: 400px; }
+  body.sheet-open { padding-right: var(--recall-panel-w); }
   /* フローティング保存ボタンはviewport基準のため、パネル幅の半分だけ左へずらす */
-  body.sheet-open .floating-save { margin-left: -200px; }
+  body.sheet-open .floating-save { margin-left: calc(var(--recall-panel-w) / -2); }
 
-  /* シートのラッパーを右側400pxのみに限定（本文側のクリックを妨げない） */
-  .recall-sheet { left: auto; right: 0; width: 400px; }
+  /* シートのラッパーを右側パネル幅のみに限定（本文側のクリックを妨げない） */
+  .recall-sheet { left: auto; right: 0; width: var(--recall-panel-w); }
   .recall-sheet-backdrop { display: none; }
   .recall-sheet-body {
     top: 0;
     bottom: 0;
     height: 100vh;
-    width: 400px;
-    max-width: 400px;
+    width: var(--recall-panel-w);
+    max-width: var(--recall-panel-w);
     margin: 0;
     border-radius: 0;
     border-left: 1px solid var(--border);
     box-shadow: -4px 0 24px rgba(0,0,0,0.10);
     animation: panelIn 0.22s ease;
   }
+
+  /* 左ふちのドラッグハンドル（サイドパネル時のみ有効） */
+  .recall-resizer {
+    display: block;
+    position: absolute;
+    left: -3px;
+    top: 0;
+    bottom: 0;
+    width: 8px;
+    cursor: col-resize;
+    z-index: 5;
+    background: transparent;
+  }
+  .recall-resizer::after {
+    content: '';
+    position: absolute;
+    left: 3px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 2px;
+    height: 36px;
+    border-radius: 1px;
+    background: var(--border-mid);
+    transition: background 0.15s;
+  }
+  .recall-resizer:hover::after { background: var(--accent); }
+  /* ドラッグ中は全体の選択を抑止し、パネルのアニメーションも止める */
+  body.recall-resizing { user-select: none; cursor: col-resize; }
+  body.recall-resizing .recall-sheet-body { animation: none; }
 }
 .recall-sheet-hd {
   padding: 12px 16px 0;
@@ -1182,6 +1213,7 @@ textarea.input-ok { border-color: var(--accent-mid); }
 <div class="recall-sheet" id="recallSheet">
   <div class="recall-sheet-backdrop" onclick="closeRecallSheet()"></div>
   <div class="recall-sheet-body">
+    <div class="recall-resizer" id="recallResizer" title="ドラッグで幅を変更"></div>
     <div class="recall-sheet-hd">
       <div class="recall-sheet-hd-top">
         <div class="recall-sheet-title" id="recallSheetTitle">月次まとめの原文</div>
@@ -1953,6 +1985,82 @@ function applyLift() {
 }
 
 // ===== 原文参照ボトムシート =====
+const PANEL_W_MIN = 400;
+const PANEL_W_MAX = 1000;
+const PANEL_W_KEY = 'sumiyoshi_recallPanelWidth';
+
+// localStorageは環境によって例外を投げるため、必ず握りつぶす
+function loadPanelWidth() {
+  try {
+    const v = parseInt(localStorage.getItem(PANEL_W_KEY), 10);
+    if(!isNaN(v)) return clampPanelWidth(v);
+  } catch(e) { /* プライベートモード等では無視して既定値を使う */ }
+  return PANEL_W_MIN;
+}
+
+function savePanelWidth(w) {
+  try { localStorage.setItem(PANEL_W_KEY, String(w)); } catch(e) { /* 保存できなくても動作に支障なし */ }
+}
+
+// 本文が潰れないよう、画面幅に応じた上限も併せて適用する
+function clampPanelWidth(w) {
+  const hardMax = Math.min(PANEL_W_MAX, Math.max(PANEL_W_MIN, window.innerWidth - 320));
+  return Math.max(PANEL_W_MIN, Math.min(hardMax, w));
+}
+
+function applyPanelWidth(w) {
+  document.documentElement.style.setProperty('--recall-panel-w', clampPanelWidth(w) + 'px');
+}
+
+function initPanelResizer() {
+  const resizer = document.getElementById('recallResizer');
+  if(!resizer) return;
+  applyPanelWidth(loadPanelWidth());
+
+  let dragging = false;
+
+  function onMove(e) {
+    if(!dragging) return;
+    // 画面右端からカーソルまでの距離＝パネル幅
+    const w = clampPanelWidth(window.innerWidth - e.clientX);
+    document.documentElement.style.setProperty('--recall-panel-w', w + 'px');
+    e.preventDefault();
+  }
+
+  function onUp() {
+    if(!dragging) return;
+    dragging = false;
+    document.body.classList.remove('recall-resizing');
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('mouseup', onUp);
+    const cur = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--recall-panel-w'), 10);
+    if(!isNaN(cur)) savePanelWidth(cur);
+  }
+
+  resizer.addEventListener('mousedown', function(e) {
+    // サイドパネル表示時のみ有効（ボトムシート時は無効）
+    if(window.innerWidth < 1200) return;
+    dragging = true;
+    document.body.classList.add('recall-resizing');
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+    e.preventDefault();
+  });
+
+  // ダブルクリックで既定幅に戻す
+  resizer.addEventListener('dblclick', function() {
+    if(window.innerWidth < 1200) return;
+    applyPanelWidth(PANEL_W_MIN);
+    savePanelWidth(PANEL_W_MIN);
+  });
+
+  // ウィンドウ幅が変わったとき、上限を超えないよう再調整する
+  window.addEventListener('resize', function() {
+    const cur = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--recall-panel-w'), 10);
+    if(!isNaN(cur)) applyPanelWidth(cur);
+  });
+}
+
 function openRecallSheet(tab) {
   const sheet = document.getElementById('recallSheet');
   if(!sheet) return;
@@ -2800,6 +2908,7 @@ function init() {
   });
   currentMonth = getYearMonth();
   currentQuarter = getQuarterLabel(currentMonth);
+  initPanelResizer();
 }
 
 function selectUser(key) {
