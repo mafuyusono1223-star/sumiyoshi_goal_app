@@ -1362,7 +1362,7 @@ textarea.input-ok { border-color: var(--accent-mid); }
         <button class="lock-unlock-btn" onclick="openLockModal('monthly','unlock')">解除する</button>
       </div>
       <div class="copypaste-warn" id="copypaste-warn">
-        📋 先月のまとめと内容が似ています。今月の新しい気づきや変化も加えてみましょう。
+        📋 先月のまとめと内容が似ています。保存はできていますが、今月の新しい気づきや変化も加えてみましょう。
       </div>
       <p class="section-label">バリュー評価　月次まとめ</p>
 
@@ -2290,27 +2290,28 @@ function calcSimilarity(a, b) {
   return intersection.size / Math.max(setA.size, setB.size);
 }
 
-async function checkCopyPaste(currentYm) {
-  const warn = document.getElementById('copypaste-warn');
-  if(!warn) return;
+// 保存時に、画面の入力内容と前月の保存内容を比較する
+// 読み込み時ではなく保存時に判定することで、リクエストを減らしつつ書いた直後に気づけるようにする
+async function checkCopyPasteOnSave(currentYm) {
+  const fields = [
+    ['バリュー②S','m_v2s'], ['バリュー②B','m_v2b'],
+    ['バリュー④S','m_v4s'], ['バリュー④B','m_v4b'],
+    ['バリュー⑥S','m_v6s'], ['バリュー⑥B','m_v6b']
+  ];
+  const curText = fields.map(([k,id]) => getVal(id)).join('');
+  if(!curText.trim()) return false;
   // 前月を計算
   const [y, m] = currentYm.split('-').map(Number);
   const prevM = m === 1 ? 12 : m - 1;
   const prevY = m === 1 ? y - 1 : y;
   const prevYm = prevY + '-' + String(prevM).padStart(2,'0');
   try {
-    const [cur, prev] = await Promise.all([
-      gasCall({action:'getMonthly', userId:currentUser, yearMonth:currentYm}),
-      gasCall({action:'getMonthly', userId:currentUser, yearMonth:prevYm})
-    ]);
-    if(!cur.data || !prev.data) { warn.classList.remove('show'); return; }
-    const fields = ['バリュー②S','バリュー②B','バリュー④S','バリュー④B','バリュー⑥S','バリュー⑥B'];
-    const curText = fields.map(k=>cur.data[k]||'').join('');
-    const prevText = fields.map(k=>prev.data[k]||'').join('');
-    if(!prevText.trim()) { warn.classList.remove('show'); return; }
-    const sim = calcSimilarity(curText, prevText);
-    sim >= 0.8 ? warn.classList.add('show') : warn.classList.remove('show');
-  } catch(e) { warn.classList.remove('show'); }
+    const prev = await gasCall({action:'getMonthly', userId:currentUser, yearMonth:prevYm});
+    if(!prev.data) return false;
+    const prevText = fields.map(([k,id]) => prev.data[k]||'').join('');
+    if(!prevText.trim()) return false;
+    return calcSimilarity(curText, prevText) >= 0.8;
+  } catch(e) { return false; }
 }
 
 // ===== 管理者：表示切替 =====
@@ -2634,6 +2635,23 @@ function changeFiscalYear(fy) {
 
 // ===== 記入ロック =====
 let lockPending = null; // {kind, key, mode}
+let lockCache = {};     // メンバー選択時に一括取得したロック状態を保持する
+
+// ロック状態をサーバーから一括取得してキャッシュする（メンバー切替時に1回だけ実行）
+async function loadLocks() {
+  lockCache = {};
+  if(!currentUser) return;
+  try {
+    const result = await gasCall({action:'getLocks', userId:currentUser});
+    if(result.success && result.data) lockCache = result.data;
+  } catch(e) { /* 取得できなくても保存時にGAS側で拒否されるため、ここでは黙って続行 */ }
+}
+
+// キャッシュからロック状態を引く（キー形式は kisho / monthly:2026-06 / quarter:2026年度 1Q）
+function lockFromCache(kind, key) {
+  const mapKey = key ? (kind + ':' + key) : kind;
+  return lockCache[mapKey] || {locked:false, lockedAt:'', lockedBy:''};
+}
 
 function lockKeyFor(kind) {
   if(kind === 'kisho') return '';
@@ -2670,6 +2688,10 @@ async function confirmLockAction() {
     const result = await gasPost({action, kind, userId: currentUser, key, password: pw});
     if(result.success) {
       closeLockModal();
+      // キャッシュを更新してからUIに反映する
+      const mapKey = key ? (kind + ':' + key) : kind;
+      if(result.lock && result.lock.locked) lockCache[mapKey] = result.lock;
+      else delete lockCache[mapKey];
       applyLockUI(kind, result.lock);
     } else {
       document.getElementById('lockModalMsg').innerHTML = `<div class="error-msg" style="margin-bottom:0">${result.error}</div>`;
@@ -2976,13 +2998,16 @@ function selectUser(key) {
   renderGradeInfo(m);
   renderGoalForms(m);
   renderQuarterTabs();
-  loadFlash();
-  loadKisho().then(() => {
-    renderMonthTabs();
-    loadMonthly(currentMonth);
-  });
   renderFlashMonthTabs();
-  checkEvaluatorComment();
+  // ロック状態を先に一括取得し、以降は各getで問い合わせずキャッシュを使う
+  loadLocks().then(() => {
+    loadFlash();
+    loadKisho().then(() => {
+      renderMonthTabs();
+      loadMonthly(currentMonth);
+    });
+    checkEvaluatorComment();
+  });
 }
 
 function changeUser() {
@@ -3265,7 +3290,7 @@ async function loadKisho() {
       }
     }
     // KR2・KR3など動的生成された入力欄も含めて、全てのDOM構築が終わってからロック状態を反映する
-    applyLockUI('kisho', result.lock || {locked:false});
+    applyLockUI('kisho', lockFromCache('kisho', ''));
   } catch(e) { console.error(e); }
 }
 
@@ -3363,7 +3388,7 @@ async function loadMonthly(ym) {
   clearMonthlyForm();
   try {
     const result = await gasCall({action:'getMonthly', userId:currentUser, yearMonth:ym});
-    applyLockUI('monthly', result.lock || {locked:false});
+    applyLockUI('monthly', lockFromCache('monthly', ym));
     if(result.success && result.data) {
       const d = result.data;
       const vMap = {'v2':'②','v4':'④','v6':'⑥'};
@@ -3402,8 +3427,6 @@ async function loadMonthly(ym) {
     }
   } catch(e) { console.error(e); }
   loadFlashRefs(ym);
-  // コピペチェック（非同期・ノンブロッキング）
-  checkCopyPaste(ym);
 }
 
 async function saveMonthly() {
@@ -3420,6 +3443,7 @@ async function saveMonthly() {
   // warn/ngなのに原因・対策・期日が全空欄の目標を検出（警告のみ・保存はブロックしない）
   const emptyDelayGoals = [1,2,3].filter(i => goalHasDelay(i) && !getVal(`m_g${i}_cause`).trim() && !getVal(`m_g${i}_action`).trim() && !getVal(`m_g${i}_due`).trim());
   showMsg('monthlyMsg','保存中...','info');
+  const savingMonth = currentMonth;
   try {
     const result = await gasPost(data);
     if(result.success) {
@@ -3430,6 +3454,11 @@ async function saveMonthly() {
       }
       document.getElementById('monthlyTimestamp').textContent = `最終更新：${result.timestamp}`;
       clearDirty('monthly');
+      // 保存後に前月との類似度を判定する（保存完了を待たせないよう非同期で実行）
+      checkCopyPasteOnSave(savingMonth).then(similar => {
+        if(currentMonth !== savingMonth) return; // 判定中に月を切り替えていたら表示しない
+        document.getElementById('copypaste-warn')?.classList.toggle('show', similar);
+      });
     } else showMsg('monthlyMsg','エラー：'+result.error,'error');
   } catch(e) { showRetryMsg('monthlyMsg','saveMonthly'); }
 }
@@ -3443,7 +3472,7 @@ async function loadQuarter(q) {
   setValForce('q_comment',''); setValForce('q_intent',''); setValForce('q_value_reason','');
   try {
     const result = await gasCall({action:'getQuarter', userId:currentUser, quarter:q});
-    applyLockUI('quarter', result.lock || {locked:false});
+    applyLockUI('quarter', lockFromCache('quarter', q));
     if(result.success && result.data) {
       const d = result.data;
       setABCVal('q_v2eval', d['バリュー②四半期評価']||'');
@@ -3588,8 +3617,11 @@ function viewMember(userId) {
   renderGoalForms(m);
   renderMonthTabs();
   renderQuarterTabs();
-  loadKisho();
-  showTab('monthly');
+  // 管理者が別メンバーを開く場合も、ロック状態を取得し直す
+  loadLocks().then(() => {
+    loadKisho();
+    showTab('monthly');
+  });
 }
 
 // ===== UI操作 =====
@@ -3734,6 +3766,7 @@ function getVal(id) { const el = document.getElementById(id); return el ? el.val
 function setVal(id, val) { const el = document.getElementById(id); if(el && val !== undefined) el.value = val; }
 
 function clearMonthlyForm() {
+  document.getElementById('copypaste-warn')?.classList.remove('show');
   ['v2','v4','v6'].forEach(v => {
     ['s','b','i','a'].forEach(f => { const el = document.getElementById(`m_${v}${f}`); if(el) { el.value = ''; el.classList.remove('input-empty','input-thin','input-ok'); } });
     const evalEl = document.getElementById(`m_${v}eval`);
